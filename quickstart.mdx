@@ -3,84 +3,66 @@ title: 'Quickstart'
 description: 'Start building awesome documentation in under 5 minutes'
 ---
 
-## Setup your development
+Thank you for purchasing **Custom Fields**! This guide provides step-by-step instructions on installing and configuring
+the plugin.
 
-Learn how to update your docs locally and deploy them to the public.
+### Requirements
 
-### Edit and preview
+- **PHP**: 8.1 or higher
+- **Laravel**: 10.0 or higher
+- **Filament**: 3.0 or higher
 
-<AccordionGroup>
-  <Accordion icon="github" title="Clone your docs locally">
-    During the onboarding process, we created a repository on your Github with
-    your docs content. You can find this repository on our
-    [dashboard](https://dashboard.mintlify.com). To clone the repository
-    locally, follow these
-    [instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-    in your terminal.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Preview changes">
-    Previewing helps you make sure your changes look as intended. We built a
-    command line interface to render these changes locally. 1. Install the
-    [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the
-    documentation changes locally with this command: ``` npm i -g mintlify ```
-    2. Run the following command at the root of your documentation (where
-    `mint.json` is): ``` mintlify dev ```
-  </Accordion>
-</AccordionGroup>
+### Activating your license on Lemon Squeezy
 
-### Deploy your changes
+Custom Fields uses [Lemon Squeezy](https://www.lemonsqueezy.com/) to handle payment and licensing.
+For distribution we use [Satis Relaticle](https://satis.relaticle.com/), a private Composer repository.
 
-<AccordionGroup>
+During the purchasing process, Lemon Squeezy will provide you with a license key.
 
-<Accordion icon="message-bot" title="Install our Github app">
-  Our Github app automatically deploys your changes to your docs site, so you
-  don't need to manage deployments yourself. You can find the link to install on
-  your [dashboard](https://dashboard.mintlify.com). Once the bot has been
-  successfully installed, there should be a check mark next to the commit hash
-  of the repo.
-</Accordion>
-<Accordion icon="rocket" title="Push your changes">
-  [Commit and push your changes to
-  Git](https://docs.github.com/en/get-started/using-git/pushing-commits-to-a-remote-repository#about-git-push)
-  for your changes to update in your docs site. If you push and don't see that
-  the Github app successfully deployed your changes, you can also manually
-  update your docs through our [dashboard](https://dashboard.mintlify.com).
-</Accordion>
+> Tip: You will need your `license key` to authenticate when you install the package with composer.
 
-</AccordionGroup>
+### Installing with Composer
 
-## Update your docs
+To install Custom Fields you'll need to add the package to your `composer.json` file:
 
-Add content directly in your files with MDX syntax and React components. You can use any of our components, or even build your own.
+```json
+{
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://satis.relaticle.com"
+        }
+    ]
+}
+```
 
-<CardGroup>
+Once the repository has been added to your composer.json file, you can install Custom Fields like any other composer
+package using the composer require command:
 
-<Card title="Style Your Docs" icon="paintbrush" href="/settings/global">
-  Add flair to your docs with personalized branding.
-</Card>
+```bash
+composer require relaticle/custom-fields
+```
 
-<Card
-  title="Add API Endpoints"
-  icon="square-code"
-  href="/api-playground/configuration"
->
-  Implement your OpenAPI spec and enable API user interaction.
-</Card>
+Next, you will be prompted to provide your username and password.
 
-<Card
-  title="Integrate Analytics"
-  icon="chart-mixed"
-  href="/analytics/supported-integrations"
->
-  Draw insights from user interactions with your documentation.
-</Card>
+```bash
+Loading composer repositories with package information
+Authentication required (satis.relaticle.com):
+Username: [licensee-email]
+Password: [license-key]
+```
 
-<Card
-  title="Host on a Custom Domain"
-  icon="browser"
-  href="/settings/custom-domain/subdomain"
->
-  Keep your docs on your own website's subdomain.
-</Card>
+Your username will be your email address and the password will is your license key. 
+For example, let's say we have the following email and license activation:
 
-</CardGroup>
+- Contact email: **myname@example.com**
+- License key: **9f3a2e1d-5b7c-4f86-a9d0-3e1c2b4a5f8e**
+
+You will need to enter the above information as follows when prompted for your credentials:
+
+```bash
+Loading composer repositories with package information
+Authentication required (satis.relaticle.com):
+Username: myname@example.com
+Password: 9f3a2e1d-5b7c-4f86-a9d0-3e1c2b4a5f8e
+```
