@@ -1,10 +1,9 @@
 ---
 title: 'Preset Custom Fields'
-description: 'Add image, video, and other HTML elements'
 icon: 'eye'
 ---
 
-Preset Custom Fields allow developers to programmatically define, deploy, and manage custom fields for Filament resources using migrations. 
+Preset Custom Fields allow developers to programmatically define, deploy, and manage custom fields for Filament resources using migrations.
 
 This approach ensures consistency, version control, and easy deployment across different environments.
 
@@ -22,13 +21,19 @@ This command generates a new migration file in your `database/migrations/custom-
 
 The `CustomFieldType` enum provides various field types you can use. Here are some common types and their associated properties:
 
-- `TEXT`: Basic text input
-- `NUMBER`: Numeric input
-- `SELECT`: Dropdown selection
-- `MULTI_SELECT`: Multiple selection
-- `DATE`: Date picker
-- `TOGGLE`: Boolean toggle switch
-- `TEXTAREA`: Multi-line text input
+* `TEXT`: Basic text input
+
+* `NUMBER`: Numeric input
+
+* `SELECT`: Dropdown selection
+
+* `MULTI_SELECT`: Multiple selection
+
+* `DATE`: Date picker
+
+* `TOGGLE`: Boolean toggle switch
+
+* `TEXTAREA`: Multi-line text input
 
 Refer to the `CustomFieldType` enum for a complete list of available field types.
 
@@ -158,13 +163,16 @@ To deploy your preset custom fields, run the standard Laravel migration command:
 php artisan migrate --path=database/custom-fields
 ```
 
-
 ### Best Practices
 
 1. **Naming Conventions**: Use clear, descriptive names for your migration files.
+
 2. **Versioning**: Create separate migrations for creating, updating, and deleting fields to maintain a clear history.
+
 3. **Idempotency**: Ensure your migrations are idempotent (can be run multiple times without side effects).
+
 4. **Documentation**: Comment your migrations to explain the purpose of each change.
+
 5. **Data Integrity**: When updating or deleting fields, consider the impact on existing data.
 
----
+***
