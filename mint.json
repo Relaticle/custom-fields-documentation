@@ -38,7 +38,8 @@
       "group": "Essentials",
       "pages": [
         "essentials/configuration",
-        "essentials/preset-custom-fields"
+        "essentials/preset-custom-fields",
+        "essentials/data-model"
       ]
     },
     {
