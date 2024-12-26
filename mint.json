@@ -40,6 +40,12 @@
         "essentials/configuration",
         "essentials/preset-custom-fields"
       ]
+    },
+    {
+    "group": "Legal & Acknowledgments",
+      "pages": [
+        "legal-acknowledgments/license"
+      ]
     }
   ],
   "footerSocials": {
