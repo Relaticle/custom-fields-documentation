@@ -44,7 +44,8 @@
     {
     "group": "Legal & Acknowledgments",
       "pages": [
-        "legal-acknowledgments/license"
+        "legal-acknowledgments/license",
+        "legal-acknowledgments/code-distribution"
       ]
     }
   ],
