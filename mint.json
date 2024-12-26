@@ -44,7 +44,8 @@
     {
     "group": "Help & Support",
       "pages": [
-        "help-support/support"
+        "help-support/support",
+        "help-support/contributing"
       ]
     },
     {
