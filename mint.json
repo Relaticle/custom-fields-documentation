@@ -42,6 +42,12 @@
       ]
     },
     {
+    "group": "Help & Support",
+      "pages": [
+        "help-support/support"
+      ]
+    },
+    {
     "group": "Legal & Acknowledgments",
       "pages": [
         "legal-acknowledgments/license",
