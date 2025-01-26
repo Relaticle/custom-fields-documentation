@@ -5,16 +5,7 @@
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
   },
-  "versions": [
-  {
-    "name": "v1",
-    "default": true
-  },
-    {
-    "name": "next",
-    "default": false
-  }
-],
+  "versions": ["v1", "next"],
   "favicon": "/favicon.svg",
   "colors": {
     "primary": "#0D9373",
@@ -40,9 +31,9 @@
       "group": "Get Started",
       "pages": [
         "introduction",
-        "installation",
-        "quickstart",
         "upgrade"
+        "installation",
+        "quickstart"
       ]
     },
     {
