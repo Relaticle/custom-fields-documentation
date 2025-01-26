@@ -5,6 +5,16 @@
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
   },
+  "versions": [
+  {
+    "name": "v1",
+    "default": true
+  },
+    {
+    "name": "next",
+    "default": false
+  }
+],
   "favicon": "/favicon.svg",
   "colors": {
     "primary": "#0D9373",
