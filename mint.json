@@ -1,67 +1,70 @@
 {
-  "$schema": "https://mintlify.com/schema.json",
-  "name": "Filament Custom Fields",
-  "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
-  },
-  "versions": ["v1", "next"],
-  "favicon": "/favicon.svg",
-  "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373",
-    "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
-    }
-  },
-  "topbarLinks": [
-    {
-      "name": "Support",
-      "url": "mailto:customfieldsnext@gmail.com"
-    }
-  ],
-  "topbarCtaButton": {
-    "name": "Buy now",
-    "url": "https://relaticle.lemonsqueezy.com/buy/803d5933-4b12-4869-9d93-f96797339603"
-  },
-  "navigation": [
-    {
-      "group": "Get Started",
-      "pages": [
-        "introduction",
-        "upgrade"
-        "installation",
-        "quickstart"
-      ]
+    "$schema": "https://mintlify.com/schema.json",
+    "name": "Filament Custom Fields",
+    "logo": {
+        "dark": "/logo/dark.svg",
+        "light": "/logo/light.svg"
     },
-    {
-      "group": "Essentials",
-      "pages": [
-        "essentials/configuration",
-        "essentials/preset-custom-fields",
-        "essentials/data-model"
-      ]
+    "versions": [
+        "v1",
+        "next"
+    ],
+    "favicon": "/favicon.svg",
+    "colors": {
+        "primary": "#0D9373",
+        "light": "#07C983",
+        "dark": "#0D9373",
+        "anchors": {
+            "from": "#0D9373",
+            "to": "#07C983"
+        }
     },
-    {
-    "group": "Help & Support",
-      "pages": [
-        "help-support/support",
-        "help-support/contributing"
-      ]
+    "topbarLinks": [
+        {
+            "name": "Support",
+            "url": "mailto:customfieldsnext@gmail.com"
+        }
+    ],
+    "topbarCtaButton": {
+        "name": "Buy now",
+        "url": "https://relaticle.lemonsqueezy.com/buy/803d5933-4b12-4869-9d93-f96797339603"
     },
-    {
-    "group": "Legal & Acknowledgments",
-      "pages": [
-        "legal-acknowledgments/license",
-        "legal-acknowledgments/code-distribution"
-      ]
+    "navigation": [
+        {
+            "group": "Get Started",
+            "pages": [
+                "introduction",
+                "upgrade",
+                "installation",
+                "quickstart"
+            ]
+        },
+        {
+            "group": "Essentials",
+            "pages": [
+                "essentials/configuration",
+                "essentials/preset-custom-fields",
+                "essentials/data-model"
+            ]
+        },
+        {
+            "group": "Help & Support",
+            "pages": [
+                "help-support/support",
+                "help-support/contributing"
+            ]
+        },
+        {
+            "group": "Legal & Acknowledgments",
+            "pages": [
+                "legal-acknowledgments/license",
+                "legal-acknowledgments/code-distribution"
+            ]
+        }
+    ],
+    "footerSocials": {
+        "x": "https://x.com/MinasyanManuk",
+        "github": "https://github.com/ManukMinasyan",
+        "linkedin": "https://www.linkedin.com/in/manukminasyan/"
     }
-  ],
-  "footerSocials": {
-    "x": "https://x.com/MinasyanManuk",
-    "github": "https://github.com/ManukMinasyan",
-    "linkedin": "https://www.linkedin.com/in/manukminasyan/"
-  }
 }
