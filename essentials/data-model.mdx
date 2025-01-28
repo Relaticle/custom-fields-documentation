@@ -3,308 +3,316 @@ title: 'Data Model'
 icon: 'database'
 ---
 
-Below, I present the data model for the custom fields functionality using an Entity-Relationship (ER) approach, highlighting entities, attributes, relationships, and constraints.
-
-***
-
-# **Data Model Overview**
-
-The custom fields functionality consists of three main entities:
-
-1. **CustomField**
-
-2. **CustomFieldOption**
-
-3. **CustomFieldValue**
-
-These entities interact to allow users to define custom fields, assign options for fields that require predefined choices, and store values for these fields associated with various entities in the application.
-
-***
+The Custom Fields functionality allows users to define custom fields, organize them into sections, assign options for fields that require predefined choices, and store values for these fields associated with various entities in the application.
 
 ## **Entities and Attributes**
 
-### **1. CustomField**
+### **1. CustomFieldSection**
 
-Defines custom fields that can be associated with different entity types in the application.
+**Purpose:** Groups custom fields into sections for better organization and presentation within the application.
+
+**Table Name:** `custom_field_sections`
+
+**Attributes:**
+
+| Attribute                               | Type              | Constraints                                                       | Description                                                                                                                                  |
+| --------------------------------------- | ----------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                    | BIGINT UNSIGNED   | Primary Key                                                       | Unique identifier for the custom field section.                                                                                              |
+| `tenant_id`                             | BIGINT UNSIGNED   | Foreign Key, Nullable, Indexed                                    | References `tenants.id` if multitenancy is enabled.                                                                                          |
+| `code`                                  | VARCHAR(255)      | Not Null                                                          | Unique code for the custom field section.                                                                                                    |
+| `name`                                  | VARCHAR(255)      | Not Null                                                          | Human-readable name of the custom field section.                                                                                             |
+| `type`                                  | VARCHAR(255)      | Not Null                                                          | Category or purpose of the section (e.g., `'general'`, `'details'`, `'additional'`).                                                         |
+| `entity_type`                           | VARCHAR(255)      | Not Null                                                          | The entity (model) type associated with this section (e.g., `'Customer'`, `'Order'`).                                                        |
+| `sort_order`                            | BIGINT UNSIGNED   | Nullable                                                          | Order for displaying sections in the user interface.                                                                                         |
+| `description`                           | VARCHAR(255)      | Nullable                                                          | Optional description providing more details about the section.                                                                               |
+| `active`                                | BOOLEAN           | Default `TRUE`                                                    | Indicates if the section is active and should be displayed.                                                                                  |
+| `system_defined`                        | BOOLEAN           | Default `FALSE`                                                   | Indicates if the section is system-defined and may have restrictions on changes.                                                             |
+| `created_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP`                                       | Record creation timestamp.                                                                                                                   |
+| `updated_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP ON UPDATE`                             | Record update timestamp.                                                                                                                     |
+
+**Constraints:**
+
+- **Primary Key:** `id`
+- **Unique Constraint:** (`entity_type`, `code`, `tenant_id`) _(if `tenant_id` is present)_
+- **Foreign Key:** `tenant_id` references `tenants.id` (if multitenancy is enabled)
+- **Indexes:** `tenant_id` (for query optimization)
+
+---
+
+### **2. CustomField**
+
+**Purpose:** Defines custom fields that can be associated with different entity types in the application.
 
 **Table Name:** `custom_fields`
 
 **Attributes:**
 
-| Attribute          | Type            | Constraints                                  | Description                                                |
-| ------------------ | --------------- | -------------------------------------------- | ---------------------------------------------------------- |
-| `id`               | BIGINT UNSIGNED | Primary Key                                  | Unique identifier for the custom field.                    |
-| `tenant_id`        | BIGINT UNSIGNED | Foreign Key, Nullable                        | References `tenants.id` if multitenancy is enabled.        |
-| `code`             | VARCHAR(255)    | Not Null, Unique per tenant and entity\_type | Unique code for the custom field.                          |
-| `name`             | VARCHAR(255)    | Not Null                                     | Human-readable name of the custom field.                   |
-| `type`             | VARCHAR(50)     | Not Null                                     | Data type of the custom field (e.g., `string`, `integer`). |
-| `lookup_type`      | VARCHAR(50)     | Nullable                                     | Type used for lookup fields (if applicable).               |
-| `entity_type`      | VARCHAR(255)    | Not Null                                     | The entity (model) type associated with this custom field. |
-| `sort_order`       | BIGINT UNSIGNED | Nullable                                     | Order for displaying custom fields.                        |
-| `validation_rules` | JSON            | Nullable                                     | JSON-encoded validation rules for the field.               |
-| `active`           | BOOLEAN         | Default `TRUE`                               | Indicates if the field is active.                          |
-| `system_defined`   | BOOLEAN         | Default `FALSE`                              | Indicates if the field is system-defined.                  |
-| `created_at`       | TIMESTAMP       | Default `CURRENT_TIMESTAMP`                  | Record creation timestamp.                                 |
-| `updated_at`       | TIMESTAMP       | Default `CURRENT_TIMESTAMP ON UPDATE`        | Record update timestamp.                                   |
-| `deleted_at`       | TIMESTAMP       | Nullable                                     | Soft delete timestamp.                                     |
+| Attribute                               | Type              | Constraints                                                       | Description                                                                                                                                  |
+| --------------------------------------- | ----------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                    | BIGINT UNSIGNED   | Primary Key                                                       | Unique identifier for the custom field.                                                                                                      |
+| `custom_field_section_id`               | BIGINT UNSIGNED   | Foreign Key, Nullable                                             | References `custom_field_sections.id`. Groups the custom field under a section.                                                              |
+| `width`                                 | VARCHAR(255)      | Nullable                                                          | Defines the display width of the field in the UI (e.g., `'full'`, `'half'`).                                                                |
+| `tenant_id`                             | BIGINT UNSIGNED   | Foreign Key, Nullable, Indexed                                    | References `tenants.id` if multitenancy is enabled.                                                                                          |
+| `code`                                  | VARCHAR(255)      | Not Null                                                          | Unique code for the custom field.                                                                                                            |
+| `name`                                  | VARCHAR(255)      | Not Null                                                          | Human-readable name of the custom field.                                                                                                     |
+| `type`                                  | VARCHAR(255)      | Not Null                                                          | Data type of the custom field (e.g., `'string'`, `'integer'`, `'boolean'`, `'date'`, `'select'`).                                            |
+| `lookup_type`                           | VARCHAR(255)      | Nullable                                                          | Type for lookup fields or relational associations.                                                                                           |
+| `entity_type`                           | VARCHAR(255)      | Not Null                                                          | The entity (model) type associated with this custom field (e.g., `'Customer'`, `'Order'`).                                                   |
+| `sort_order`                            | BIGINT UNSIGNED   | Nullable                                                          | Order for displaying fields in the user interface.                                                                                           |
+| `validation_rules`                      | JSON              | Nullable                                                          | JSON-formatted validation rules (e.g., `{"required": true, "max": 255}`).                                                                    |
+| `active`                                | BOOLEAN           | Default `TRUE`                                                    | Indicates if the custom field is active and should be displayed.                                                                             |
+| `system_defined`                        | BOOLEAN           | Default `FALSE`                                                   | Indicates if the field is system-defined and may have restrictions on changes.                                                               |
+| `created_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP`                                       | Record creation timestamp.                                                                                                                   |
+| `updated_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP ON UPDATE`                             | Record update timestamp.                                                                                                                     |
 
 **Constraints:**
 
-* **Primary Key:** `id`
+- **Primary Key:** `id`
+- **Unique Constraint:** (`code`, `entity_type`, `tenant_id`) _(if `tenant_id` is present)_
+- **Foreign Keys:**
+  - `tenant_id` references `tenants.id` (if multitenancy is enabled)
+  - `custom_field_section_id` references `custom_field_sections.id`
+- **Indexes:** `tenant_id`, `custom_field_section_id` (for query optimization)
 
-* **Unique Constraint:** (`code`, `entity_type`, `tenant_id`)
+---
 
-* **Foreign Key:** `tenant_id` references `tenants.id` (if multitenancy is enabled)
+### **3. CustomFieldOption**
 
-***
-
-### **2. CustomFieldOption**
-
-Stores predefined options for custom fields that require selectable choices.
+**Purpose:** Stores predefined options for custom fields that require selectable choices.
 
 **Table Name:** `custom_field_options`
 
 **Attributes:**
 
-| Attribute         | Type            | Constraints                           | Description                                         |
-| ----------------- | --------------- | ------------------------------------- | --------------------------------------------------- |
-| `id`              | BIGINT UNSIGNED | Primary Key                           | Unique identifier for the custom field option.      |
-| `tenant_id`       | BIGINT UNSIGNED | Foreign Key, Nullable                 | References `tenants.id` if multitenancy is enabled. |
-| `custom_field_id` | BIGINT UNSIGNED | Foreign Key, Not Null                 | References `custom_fields.id`.                      |
-| `name`            | VARCHAR(255)    | Not Null                              | Display name of the option.                         |
-| `sort_order`      | BIGINT UNSIGNED | Nullable                              | Order for displaying the options.                   |
-| `created_at`      | TIMESTAMP       | Default `CURRENT_TIMESTAMP`           | Record creation timestamp.                          |
-| `updated_at`      | TIMESTAMP       | Default `CURRENT_TIMESTAMP ON UPDATE` | Record update timestamp.                            |
-| `deleted_at`      | TIMESTAMP       | Nullable                              | Soft delete timestamp.                              |
+| Attribute                               | Type              | Constraints                                                       | Description                                                                                                                                  |
+| --------------------------------------- | ----------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                    | BIGINT UNSIGNED   | Primary Key                                                       | Unique identifier for the custom field option.                                                                                               |
+| `tenant_id`                             | BIGINT UNSIGNED   | Foreign Key, Nullable, Indexed                                    | References `tenants.id` if multitenancy is enabled.                                                                                          |
+| `custom_field_id`                       | BIGINT UNSIGNED   | Foreign Key                                                       | References `custom_fields.id`.                                                                                                               |
+| `name`                                  | VARCHAR(255)      | Nullable                                                          | Option name or value.                                                                                                                        |
+| `sort_order`                            | BIGINT UNSIGNED   | Nullable                                                          | Order for displaying options in the user interface.                                                                                          |
+| `created_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP`                                       | Record creation timestamp.                                                                                                                   |
+| `updated_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP ON UPDATE`                             | Record update timestamp.                                                                                                                     |
 
 **Constraints:**
 
-* **Primary Key:** `id`
+- **Primary Key:** `id`
+- **Unique Constraint:** (`custom_field_id`, `name`, `tenant_id`) _(if `tenant_id` is present)_
+- **Foreign Keys:**
+  - `tenant_id` references `tenants.id` (if multitenancy is enabled)
+  - `custom_field_id` references `custom_fields.id` (with `CASCADE ON DELETE`)
+- **Indexes:** `tenant_id`, `custom_field_id` (for query optimization)
 
-* **Unique Constraint:** (`custom_field_id`, `name`, `tenant_id`)
+---
 
-* **Foreign Keys:**
+### **4. CustomFieldValue**
 
-  * `custom_field_id` references `custom_fields.id` **ON DELETE CASCADE**
-
-  * `tenant_id` references `tenants.id` (if multitenancy is enabled)
-
-***
-
-### **3. CustomFieldValue**
-
-Stores the values assigned to entities for each custom field.
+**Purpose:** Stores the values assigned to entities for each custom field.
 
 **Table Name:** `custom_field_values`
 
 **Attributes:**
 
-| Attribute         | Type            | Constraints                           | Description                                                    |
-| ----------------- | --------------- | ------------------------------------- | -------------------------------------------------------------- |
-| `id`              | BIGINT UNSIGNED | Primary Key                           | Unique identifier for the custom field value.                  |
-| `tenant_id`       | BIGINT UNSIGNED | Foreign Key, Nullable                 | References `tenants.id` if multitenancy is enabled.            |
-| `entity_type`     | VARCHAR(255)    | Not Null                              | The type of the entity (model) associated with the value.      |
-| `entity_id`       | BIGINT UNSIGNED | Not Null                              | The ID of the associated entity.                               |
-| `custom_field_id` | BIGINT UNSIGNED | Foreign Key, Not Null                 | References `custom_fields.id`.                                 |
-| **Value Fields:** |                 |                                       | Only one is populated based on the `type` of the custom field. |
-| `string_value`    | VARCHAR(255)    | Nullable                              | Value for fields of type `string`.                             |
-| `text_value`      | TEXT            | Nullable                              | Value for fields of type `text`.                               |
-| `boolean_value`   | BOOLEAN         | Nullable                              | Value for fields of type `boolean`.                            |
-| `integer_value`   | INTEGER         | Nullable                              | Value for fields of type `integer`.                            |
-| `float_value`     | DOUBLE          | Nullable                              | Value for fields of type `float` or `double`.                  |
-| `date_value`      | DATE            | Nullable                              | Value for fields of type `date`.                               |
-| `datetime_value`  | DATETIME        | Nullable                              | Value for fields of type `datetime`.                           |
-| `json_value`      | JSON            | Nullable                              | Value for fields of type `json` or `array`.                    |
-| `created_at`      | TIMESTAMP       | Default `CURRENT_TIMESTAMP`           | Record creation timestamp.                                     |
-| `updated_at`      | TIMESTAMP       | Default `CURRENT_TIMESTAMP ON UPDATE` | Record update timestamp.                                       |
-| `deleted_at`      | TIMESTAMP       | Nullable                              | Soft delete timestamp.                                         |
+| Attribute                               | Type              | Constraints                                                       | Description                                                                                                                                  |
+| --------------------------------------- | ----------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                    | BIGINT UNSIGNED   | Primary Key                                                       | Unique identifier for the custom field value.                                                                                                |
+| `tenant_id`                             | BIGINT UNSIGNED   | Foreign Key, Nullable, Indexed                                    | References `tenants.id` if multitenancy is enabled.                                                                                          |
+| `entity_type`                           | VARCHAR(255)      | Not Null                                                          | The entity (model) type associated with this custom field value (e.g., `'Customer'`, `'Order'`).                                             |
+| `entity_id`                             | BIGINT UNSIGNED   | Not Null                                                          | The ID of the entity instance.                                                                                                               |
+| `custom_field_id`                       | BIGINT UNSIGNED   | Foreign Key                                                       | References `custom_fields.id`.                                                                                                               |
+| `string_value`                          | VARCHAR(255)      | Nullable                                                          | Value when the custom field type is string.                                                                                                  |
+| `text_value`                            | TEXT              | Nullable                                                          | Value when the custom field type is text.                                                                                                    |
+| `boolean_value`                         | BOOLEAN           | Nullable                                                          | Value when the custom field type is boolean.                                                                                                 |
+| `integer_value`                         | INTEGER           | Nullable                                                          | Value when the custom field type is integer.                                                                                                 |
+| `float_value`                           | DOUBLE            | Nullable                                                          | Value when the custom field type is float.                                                                                                   |
+| `date_value`                            | DATE              | Nullable                                                          | Value when the custom field type is date.                                                                                                    |
+| `datetime_value`                        | DATETIME          | Nullable                                                          | Value when the custom field type is datetime.                                                                                                |
+| `json_value`                            | JSON              | Nullable                                                          | Value when the custom field type is JSON or for storing array of values.                                                                     |
+| `created_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP`                                       | Record creation timestamp.                                                                                                                   |
+| `updated_at`                            | TIMESTAMP         | Default `CURRENT_TIMESTAMP ON UPDATE`                             | Record update timestamp.                                                                                                                     |
 
 **Constraints:**
 
-* **Primary Key:** `id`
+- **Primary Key:** `id`
+- **Unique Constraint:** (`entity_type`, `entity_id`, `custom_field_id`, `tenant_id`) _(if `tenant_id` is present)_
+- **Foreign Keys:**
+  - `tenant_id` references `tenants.id` (if multitenancy is enabled)
+  - `custom_field_id` references `custom_fields.id` (with `CASCADE ON DELETE`)
+- **Indexes:**
+  - `tenant_id`, `entity_type`, `entity_id`, `custom_field_id` (for query optimization)
+- **Polymorphic Association:** Uses `entity_type` and `entity_id` to associate with any entity in the application.
 
-* **Unique Constraint:** (`entity_type`, `entity_id`, `custom_field_id`, `tenant_id`)
-
-* **Foreign Keys:**
-
-  * `custom_field_id` references `custom_fields.id` **ON DELETE CASCADE**
-
-  * `tenant_id` references `tenants.id` (if multitenancy is enabled)
-
-***
+---
 
 ## **Relationships and Associations**
 
-* **CustomField** *(1)* --- *(M)* **CustomFieldOption**
+- **CustomFieldSection** *(1) --- (M)* **CustomField**
 
-  * A custom field can have multiple options.
+  - **Type:** One-to-Many
+  - **Foreign Key in CustomField:** `custom_field_section_id` references `custom_field_sections.id`
+  - **On Delete:** Application-defined (nullable foreign key allows for fields without sections)
 
-  * **Relationship Type:** One-to-Many
+- **CustomField** *(M) --- (1)* **CustomFieldSection**
 
-  * **On Delete:** Cascade (deleting a custom field deletes its options)
+  - **Type:** Many-to-One
+  - A custom field may belong to a custom field section.
 
-* **CustomFieldValue** *(M)* --- *(1)* **CustomField**
+- **CustomField** *(1) --- (M)* **CustomFieldOption**
 
-  * A custom field value is associated with one custom field.
+  - **Type:** One-to-Many
+  - **Foreign Key in CustomFieldOption:** `custom_field_id` references `custom_fields.id`
+  - **On Delete:** Cascade (deleting a custom field deletes its options)
 
-  * **Relationship Type:** Many-to-One
+- **CustomFieldValue** *(M) --- (1)* **CustomField**
 
-  * **On Delete:** Cascade (deleting a custom field deletes its values)
+  - **Type:** Many-to-One
+  - **Foreign Key in CustomFieldValue:** `custom_field_id` references `custom_fields.id`
+  - **On Delete:** Cascade (deleting a custom field deletes its values)
 
-* **CustomFieldValue** *(M)* --- *(1)* **Entity** (Polymorphic)
+- **CustomFieldValue** *(M) --- (1)* **Entity** *(Polymorphic)*
 
-  * A custom field value is associated with one entity of any type.
+  - **Type:** Polymorphic Many-to-One
+  - **Polymorphic Fields:** `entity_type` and `entity_id`
+  - Associates custom field values with any entity in the application.
 
-  * **Relationship Type:** Polymorphic Many-to-One
+---
 
-  * **Polymorphic Fields:** `entity_type` and `entity_id`
+## **Constraints and Indexes**
 
-***
+### **Unique Constraints**
+
+- **CustomFieldSection**
+
+  - **Unique Index:** (`entity_type`, `code`, `tenant_id`) _(if `tenant_id` is present)_
+
+- **CustomField**
+
+  - **Unique Index:** (`code`, `entity_type`, `tenant_id`) _(if `tenant_id` is present)_
+
+- **CustomFieldOption**
+
+  - **Unique Index:** (`custom_field_id`, `name`, `tenant_id`) _(if `tenant_id` is present)_
+
+- **CustomFieldValue**
+
+  - **Unique Index:** (`entity_type`, `entity_id`, `custom_field_id`, `tenant_id`) _(if `tenant_id` is present)_
+
+### **Foreign Keys and Indexes**
+
+- **Foreign Keys**
+
+  - **`tenant_id`**
+
+    - References `tenants.id` in all tables where multitenancy is enabled.
+
+  - **`custom_field_section_id`**
+
+    - References `custom_field_sections.id` in `custom_fields`.
+
+  - **`custom_field_id`**
+
+    - References `custom_fields.id` in `custom_field_options` and `custom_field_values`.
+
+- **Indexes**
+
+  - **`tenant_id`**
+
+    - Indexed in all tables for query optimization in a multitenant environment.
+
+  - **Other Foreign Keys**
+
+    - Indexed to speed up joins and lookups.
+
+---
 
 ## **Multitenancy Support**
 
-If multitenancy is enabled:
+- **Tenant Isolation**
 
-* **Tenant Isolation:**
+  - Data is scoped per tenant by including `tenant_id` in each table.
+  - Unique constraints include `tenant_id` to prevent conflicts across tenants.
+  - All queries should filter by `tenant_id` to ensure data isolation.
 
-  * Data is scoped per tenant by including `tenant_id` in each table.
+- **Foreign Key Constraints**
 
-  * Unique constraints include `tenant_id` to prevent conflicts across tenants.
+  - `tenant_id` references `tenants.id` (assuming a `tenants` table exists).
 
-* **Foreign Key Constraints:**
+- **Conditional Inclusion**
 
-  * `tenant_id` in each table references `tenants.id`.
+  - The `tenant_id` column is added only if multitenancy is enabled (`Utils::isTenantEnabled()`).
+  - This allows flexibility in deploying the application in both multitenant and single-tenant environments.
 
-* **Indexes:**
+- **Indexes**
 
-  * Add indexes on `tenant_id` to optimize tenant-specific queries.
+  - Indexes on `tenant_id` optimize tenant-specific queries.
 
-***
-
-## **Constraints and Indexes Summary**
-
-### **CustomField**
-
-* **Unique Index:** (`code`, `entity_type`, `tenant_id`)
-
-* **Foreign Key:** `tenant_id` → `tenants.id`
-
-### **CustomFieldOption**
-
-* **Unique Index:** (`custom_field_id`, `name`, `tenant_id`)
-
-* **Foreign Keys:**
-
-  * `custom_field_id` → `custom_fields.id` **ON DELETE CASCADE**
-
-  * `tenant_id` → `tenants.id`
-
-### **CustomFieldValue**
-
-* **Unique Index:** (`entity_type`, `entity_id`, `custom_field_id`, `tenant_id`)
-
-* **Foreign Keys:**
-
-  * `custom_field_id` → `custom_fields.id` **ON DELETE CASCADE**
-
-  * `tenant_id` → `tenants.id`
-
-***
-
-## **Additional Notes**
-
-* **Soft Deletes:**
-
-  * Implemented using the `deleted_at` column in each table.
-
-  * Allows for soft deletion, enabling data recovery if needed.
-
-* **Timestamps:**
-
-  * `created_at` and `updated_at` columns automatically record when records are created and updated.
-
-  * Useful for auditing and tracking changes over time.
-
-* **Data Types Handling:**
-
-  * The `CustomFieldValue` table includes multiple value fields to accommodate different data types.
-
-  * Only one value field should be populated per record, corresponding to the `type` specified in the associated `CustomField`.
-
-* **Validation Rules:**
-
-  * `validation_rules` in `CustomField` allows for JSON-encoded rules.
-
-  * Can be used to enforce data integrity when values are saved.
-
-* **System-defined Fields:**
-
-  * `system_defined` attribute in `CustomField` indicates fields that are integral to the system.
-
-  * May have restrictions on editing or deletion to prevent system issues.
-
-***
+---
 
 ## **Example Usage**
 
-To illustrate how these entities interact, here's an example:
+### **Scenario:** Storing Additional Customer Information
 
-1. **Define a Custom Field:**
+1. **Define a Custom Field Section**
 
-   * `CustomField` with:
+   - **CustomFieldSection** with:
 
-     * `code`: `'customer_age'`
+     - `code`: `'contact_details'`
+     - `name`: `'Contact Details'`
+     - `type`: `'additional'`
+     - `entity_type`: `'Customer'`
+     - `sort_order`: `1`
+     - `description`: `'Additional contact information for the customer.'`
 
-     * `name`: `'Customer Age'`
+2. **Define Custom Fields within the Section**
 
-     * `type`: `'integer'`
+   - **CustomField** for `'alternate_email'`:
 
-     * `entity_type`: `'Customer'`
+     - `custom_field_section_id`: Reference to `'contact_details'` section
+     - `code`: `'alternate_email'`
+     - `name`: `'Alternate Email'`
+     - `type`: `'string'`
+     - `entity_type`: `'Customer'`
+     - `validation_rules`: `{"email": true}`
 
-     * `validation_rules`: `{"min": 0, "max": 150}`
+   - **CustomField** for `'preferred_contact_time'`:
 
-2. **Assign Options (if applicable):**
+     - `custom_field_section_id`: Reference to `'contact_details'` section
+     - `code`: `'preferred_contact_time'`
+     - `name`: `'Preferred Contact Time'`
+     - `type`: `'select'`
+     - `entity_type`: `'Customer'`
+     - Define options in **CustomFieldOption**:
 
-   * For a field of type `'select'`, define `CustomFieldOption` records linked via `custom_field_id`.
+       - Option 1:
 
-3. **Store Values for an Entity:**
+         - `custom_field_id`: Reference to `'preferred_contact_time'`
+         - `name`: `'Morning'`
+         - `sort_order`: `1`
 
-   * `CustomFieldValue` with:
+       - Option 2:
 
-     * `entity_type`: `'Customer'`
+         - `custom_field_id`: Reference to `'preferred_contact_time'`
+         - `name`: `'Afternoon'`
+         - `sort_order`: `2`
 
-     * `entity_id`: `12345` (ID of a customer)
+       - Option 3:
 
-     * `custom_field_id`: Reference to `'customer_age'` field
+         - `custom_field_id`: Reference to `'preferred_contact_time'`
+         - `name`: `'Evening'`
+         - `sort_order`: `3`
 
-     * `integer_value`: `35`
+3. **Store Values for a Customer Entity**
 
-***
+   - **CustomFieldValue** for `'alternate_email'`:
 
-## **Best Practices Followed**
+     - `entity_type`: `'Customer'`
+     - `entity_id`: `1001` (ID of the customer)
+     - `custom_field_id`: Reference to `'alternate_email'`
+     - `string_value`: `'customer.alt@example.com'`
 
-* **Clear Separation of Concerns:**
+   - **CustomFieldValue** for `'preferred_contact_time'`:
 
-  * Each table has a specific purpose, reducing complexity.
-
-* **Normalization:**
-
-  * Data is normalized to at least Third Normal Form (3NF), minimizing redundancy.
-
-* **Polymorphic Associations:**
-
-  * Enables flexibility by allowing `CustomFieldValue` to be associated with any entity type.
-
-* **Scalability:**
-
-  * Indexes and constraints are strategically placed to optimize performance.
-
-* **Data Integrity:**
-
-  * Use of foreign keys and constraints ensures referential integrity.
-
-* **Multitenancy Support:**
-
-  * Incorporates tenant isolation, essential for SaaS applications.
-
-***
+     - `entity_type`: `'Customer'`
+     - `entity_id`: `1001`
+     - `custom_field_id`: Reference to `'preferred_contact_time'`
+     - `string_value`: `'Afternoon'`
