@@ -34,9 +34,9 @@
             "group": "Get Started",
             "pages": [
                 "introduction",
-                "upgrade",
                 "installation",
-                "quickstart"
+                "quickstart",
+                "upgrade"
             ]
         },
         {
