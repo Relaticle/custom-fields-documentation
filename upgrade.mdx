@@ -1,6 +1,5 @@
 ---
 title: 'Upgrade Guide'
-version: "next"
 ---
 
 This guide provides step-by-step instructions to upgrade the **Custom Fields FilamentPHP Plugin** to version **1.0**. Due to significant changes in the database schema and data structures, it's essential to follow this guide thoroughly to ensure a smooth transition.
@@ -11,7 +10,7 @@ Version 1.0 introduces new features and optimizations that require updates to yo
 
 ## Automated Upgrade Tool
 
-After [installing Custom Fields version 1.0](/upgrade#2-update-composer-dependencies), to expedite the upgrade process, use the provided Artisan command:
+After [installing Custom Fields version 1.*)](/upgrade#2-update-composer-dependencies), to expedite the upgrade process, use the provided Artisan command:
 
 ```shell
 php artisan custom-fields:upgrade
@@ -19,7 +18,7 @@ php artisan custom-fields:upgrade
 
 This command will:
 
-- Update the database schema to match version 1.0 requirements.
+- Update the database schema to match version 1.* requirements.
 - Migrate existing data to comply with the new structure.
 
 > **Note:** While this command handles many tasks, it may not cover all custom scenarios in your application. Please proceed with the detailed steps below to complete the upgrade fully.
