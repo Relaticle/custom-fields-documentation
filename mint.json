@@ -6,8 +6,7 @@
         "light": "/logo/light.svg"
     },
     "versions": [
-        "v1",
-        "next"
+        "v1"
     ],
     "favicon": "/favicon.svg",
     "colors": {
