@@ -130,12 +130,11 @@ This trait automatically includes all custom fields in the table view for the re
 In your resource's `ViewRecord` page or wherever you define the info list schema, include the `CustomFieldsInfolists` component:
 
 ```php
-Relaticle\CustomFields\Filament\Infolists\Components\CustomFieldsInfolists;
+use Relaticle\CustomFields\Filament\Infolists\CustomFieldsInfolists;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewCompany extends ViewRecord
 {
-    use InteractsWithCustomFields;
-
     // ...
 
     public function getInfolist(): array
@@ -147,7 +146,7 @@ class ViewCompany extends ViewRecord
             Infolists\Components\TextEntry::make('email')
                 ->label('Email Address'),
     
-            // Custom Fields Component
+            // Custom Fields
             CustomFieldsInfolists::make()
                 ->columnSpanFull(),
         ];
