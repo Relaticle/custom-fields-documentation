@@ -125,6 +125,34 @@ class ListCompanies extends ListRecords
 
 This trait automatically includes all custom fields in the table view for the resource.
 
+## Integrating into Info Lists
 
+In your resource's `ViewRecord` page or wherever you define the info list schema, include the `CustomFieldsInfolists` component:
+
+```php
+Relaticle\CustomFields\Filament\Infolists\Components\CustomFieldsInfolists;
+
+class ViewCompany extends ViewRecord
+{
+    use InteractsWithCustomFields;
+
+    // ...
+
+    public function getInfolist(): array
+    {
+        return [
+            // ... existing infolist components
+            Infolists\Components\TextEntry::make('name')
+                ->label('Company Name'),
+            Infolists\Components\TextEntry::make('email')
+                ->label('Email Address'),
+    
+            // Custom Fields Component
+            CustomFieldsInfolists::make()
+                ->columnSpanFull(),
+        ];
+    }
+}
+```
 
 ***
