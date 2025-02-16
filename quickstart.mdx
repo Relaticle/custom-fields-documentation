@@ -154,4 +154,29 @@ class ViewCompany extends ViewRecord
 }
 ```
 
-***
+## Including Custom Fields in Exports
+
+To include custom fields in your exports, you can leverage the `CustomFieldsExporter` component, which is designed to integrate seamlessly with Filament's exporting tools. Below is your `CompanyExporter` class, which shows how to implement this:
+
+```
+use Filament\Actions\Exports\ExportColumn;
+use Filament\Actions\Exports\Exporter;
+use Relaticle\CustomFields\Filament\Exports\CustomFieldsExporter;
+
+class CompanyExporter extends Exporter
+{
+    protected static ?string $model = Comapny::class;
+
+    public static function getColumns(): array
+    {
+        return [
+            ExportColumn::make('id')
+                ->label('ID'),
+            ExportColumn::make('name'),
+            ExportColumn::make('email'),
+
+            // Include custom fields
+            ...CustomFieldsExporter::getColumns(self::getModel()),
+        ];
+    }
+}
