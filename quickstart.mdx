@@ -4,7 +4,7 @@ title: 'Quickstart'
 
 This section will guide you through setting up and using the Custom Fields plugin in your Filament admin panel.
 
-## Step 1: Publish and Run Migrations
+## Publish and Run Migrations
 
 Publish the migration files:
 
@@ -18,7 +18,7 @@ Run the migrations:
 php artisan migrate
 ```
 
-## Step 2: Publish the Configuration File (Optional)
+## Publish the Configuration File (Optional)
 
 If you wish to customize the configuration, publish the config file:
 
@@ -46,7 +46,31 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-## Step 4: Adding Custom Fields to Forms
+
+## Setting Up the Model
+
+Your model needs to implement the `HasCustomFields` interface and use the `UsesCustomFields` trait to work with custom
+fields.
+
+In your model (e.g., `Company`), add the following:
+
+```php
+use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
+use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
+use Illuminate\Database\Eloquent\Model;
+
+class Company extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+
+    // ... your existing model code
+}
+```
+
+By following these steps, your model will be fully equipped to handle custom fields, and you will have successfully set
+up Custom Fields in your Filament application, enabling dynamic and flexible data management.
+
+## Adding Custom Fields to Forms
 
 To include custom fields in your resource forms, you'll use the `CustomFieldsComponent`. This component dynamically adds
 all the custom fields associated with the resource.
@@ -80,7 +104,7 @@ class CompanyResource extends Resource
 }
 ```
 
-## Step 5: Displaying Custom Fields in Table Views
+## Displaying Custom Fields in Table Views
 
 To display custom fields in your table views, you need to use the `InteractsWithCustomFields` trait in your
 resource's `ListRecords` page.
@@ -101,27 +125,6 @@ class ListCompanies extends ListRecords
 
 This trait automatically includes all custom fields in the table view for the resource.
 
-## Step 6: Setting Up the Model
 
-Your model needs to implement the `HasCustomFields` interface and use the `UsesCustomFields` trait to work with custom
-fields.
-
-In your model (e.g., `Company`), add the following:
-
-```php
-use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
-use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
-use Illuminate\Database\Eloquent\Model;
-
-class Company extends Model implements HasCustomFields
-{
-    use UsesCustomFields;
-
-    // ... your existing model code
-}
-```
-
-By following these steps, your model will be fully equipped to handle custom fields, and you will have successfully set
-up Custom Fields in your Filament application, enabling dynamic and flexible data management.
 
 ***
