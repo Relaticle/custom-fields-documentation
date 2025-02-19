@@ -41,6 +41,7 @@
             "group": "Essentials",
             "pages": [
                 "essentials/configuration",
+                "essentials/authorization",
                 "essentials/preset-custom-fields",
                 "essentials/data-model"
             ]
