@@ -3,6 +3,72 @@ title: 'Configuration'
 icon: 'gear'
 ---
 
+## Overriding Models
+
+The Custom Fields plugin allows you to replace the default models with your own custom implementations.
+
+### Registering Custom Models
+
+Register your custom models in a service provider:
+
+```php
+use Relaticle\CustomFields\CustomFields;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot()
+    {
+        // Register your custom models
+        CustomFields::useCustomFieldModel(YourCustomField::class);
+        CustomFields::useValueModel(YourCustomFieldValue::class);
+        CustomFields::useOptionModel(YourCustomFieldOption::class);
+        CustomFields::useSectionModel(YourCustomFieldSection::class);
+    }
+}
+```
+
+### Creating Custom Models
+
+Extend the base models:
+
+```php
+namespace App\Models;
+
+use Relaticle\CustomFields\Models\CustomField as BaseCustomField;
+
+class YourCustomField extends BaseCustomField
+{
+    // Add custom functionality
+    public function someCustomMethod()
+    {
+        // Your implementation
+    }
+    
+    // Override methods if needed
+    public function getNameAttribute($value)
+    {
+        return ucfirst($value);
+    }
+}
+```
+
+### Accessing Custom Models
+
+Use the helper methods:
+
+```php
+// Get model class names
+$customFieldClass = CustomFields::customFieldModel();
+
+// Create new instances
+$customField = CustomFields::newCustomFieldModel();
+$value = CustomFields::newValueModel();
+$option = CustomFields::newOptionModel();
+$section = CustomFields::newSectionModel();
+```
+
+## Configuration File
+
 The configuration file (`config/custom-fields.php`) allows you to customize various aspects of the plugin. Below is the
 default configuration:
 
