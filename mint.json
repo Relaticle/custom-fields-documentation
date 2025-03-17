@@ -43,6 +43,7 @@
                 "essentials/configuration",
                 "essentials/authorization",
                 "essentials/preset-custom-fields",
+                "essentials/import-export",
                 "essentials/data-model"
             ]
         },
