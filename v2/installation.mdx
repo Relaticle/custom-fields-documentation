@@ -1,0 +1,124 @@
+---
+title: 'Installation'
+icon: 'download'
+---
+
+**Custom Fields** is now open source and can be installed directly via Composer for all users. The installation process is the same whether you're using the AGPL-3.0 or Commercial license.
+
+## Requirements
+
+- **PHP**: 8.3 or higher
+- **Filament**: 4.0 or higher
+
+## Installation Steps
+
+### 1. Install via Composer
+
+```bash
+composer require relaticle/custom-fields
+```
+
+### 2. Publish Migrations
+
+```bash
+php artisan vendor:publish --tag="custom-fields-migrations"
+```
+
+### 3. Run Migrations
+
+```bash
+php artisan migrate
+```
+
+That's it! Custom Fields is now installed and ready to use.
+
+## License Activation (Commercial Users Only)
+
+If you're using Custom Fields in a closed-source commercial project, you need to purchase and activate a commercial license.
+
+### License Activation
+
+After purchasing, you'll receive a license key. Add it to your `.env` file:
+
+```env
+CUSTOM_FIELDS_LICENSE_KEY=your-license-key-here
+```
+
+Or configure it in `config/custom-fields.php`:
+
+```php
+return [
+    'license_key' => env('CUSTOM_FIELDS_LICENSE_KEY'),
+    // other configuration options...
+];
+```
+
+<Note>
+The package will work without a license key, but commercial use without a valid license violates the terms of use. Please ensure you have the appropriate license for your use case.
+</Note>
+
+## Publishing Assets (Optional)
+
+### Configuration File
+
+```bash
+php artisan vendor:publish --tag="custom-fields-config"
+```
+
+### Language Files
+
+```bash
+php artisan vendor:publish --tag="custom-fields-translations"
+```
+
+### Views (for customization)
+
+```bash
+php artisan vendor:publish --tag="custom-fields-views"
+```
+
+## Verify Installation
+
+After installation, verify everything is working:
+
+```bash
+php artisan about
+```
+
+You should see Custom Fields listed in the environment section.
+
+## License Compliance
+
+<AccordionGroup>
+  <Accordion title="Do I need a license key for open source projects?">
+    No. If your project is open source under AGPL-3.0, you can use Custom Fields without a license key.
+  </Accordion>
+  
+  <Accordion title="How do I know if I need a commercial license?">
+    If your project is closed-source, proprietary, or you cannot comply with AGPL-3.0 requirements (making your code open source), you need a commercial license.
+  </Accordion>
+  
+  <Accordion title="What happens if I don't add a license key?">
+    The package will function normally. However, using it commercially without a valid license is a violation of the license agreement. We trust our users to obtain the appropriate license.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Class not found errors">
+    Run `composer dump-autoload` to regenerate the autoloader.
+  </Accordion>
+  
+  <Accordion title="Migration errors">
+    Ensure your database is properly configured and accessible.
+  </Accordion>
+  
+  <Accordion title="License key not recognized">
+    Check that your `.env` file is properly loaded and the key is correctly formatted.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Ready to start using Custom Fields? Check out our [Quickstart Guide](/quickstart) to add your first custom fields in minutes!

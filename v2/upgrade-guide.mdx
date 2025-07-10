@@ -1,0 +1,198 @@
+---
+title: 'Upgrading to v2'
+description: 'Step-by-step guide for upgrading Custom Fields from v1 to v2'
+icon: 'arrow-up'
+version: 'V2-beta'
+---
+
+## Overview
+
+Upgrading from Custom Fields v1 to v2 is straightforward. This guide will walk you through the process and highlight what's changed.
+
+<Info>
+**Good news!** Version 2 is fully backward compatible with v1. Your existing code will continue to work without modifications.
+</Info>
+
+## Requirements
+
+Before upgrading, ensure your environment meets these requirements:
+
+- **PHP**: 8.2 or higher (same as v1)
+- **Laravel**: 10.0 or higher (same as v1)
+- **Filament**: 3.0 or higher (same as v1)
+
+## Upgrade Steps
+
+### 1. Update Composer Dependency
+
+```bash
+composer require relaticle/custom-fields:^2.0
+```
+
+### 2. Clear Caches
+
+```bash
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
+```
+
+### 3. Publish New Assets (Optional)
+
+If you want to take advantage of new configuration options:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-config" --force
+```
+
+<Warning>
+Only use `--force` if you haven't customized the config file. Otherwise, manually merge changes.
+</Warning>
+
+### 4. Run Migrations
+
+v2 includes optional migrations for new features:
+
+```bash
+php artisan migrate
+```
+
+## What's Changed
+
+### New Features Available
+
+Once upgraded, you'll have access to:
+
+1. **Visibility Rules** - Conditional field display
+2. **Enhanced Performance** - Faster field loading
+3. **New API Methods** - Additional helper methods
+
+### Configuration Changes
+
+New configuration options in `config/custom-fields.php`:
+
+```php
+return [
+    // Existing v1 config...
+    
+    // New v2 options
+    'visibility_rules' => [
+        'enabled' => true,
+        'cache_duration' => 3600,
+    ],
+    
+    'performance' => [
+        'lazy_loading' => true,
+        'query_optimization' => true,
+    ],
+];
+```
+
+### Database Changes
+
+v2 adds optional columns for new features:
+
+- `visibility_rules` (JSON) - Stores visibility conditions
+- `field_metadata` (JSON) - Additional field metadata
+
+These are added automatically when you run migrations.
+
+## Using New Features
+
+### Visibility Rules
+
+To use visibility rules on existing fields:
+
+1. Edit the custom field in your admin panel
+2. Navigate to the "Visibility" tab
+3. Configure your conditions
+
+See the [Visibility Rules](/v2/visibility-rules) documentation for details.
+
+### Performance Optimization
+
+Performance improvements are automatic. To fine-tune:
+
+```php
+// In your model
+use Relaticle\CustomFields\Concerns\UsesCustomFields;
+
+class Product extends Model
+{
+    use UsesCustomFields;
+    
+    // Enable lazy loading for this model
+    protected $customFieldsLazyLoad = true;
+}
+```
+
+## Compatibility Notes
+
+### What Works Without Changes
+
+✅ All existing custom fields  
+✅ Current API methods  
+✅ Database structure  
+✅ License keys  
+✅ Import/Export functionality  
+✅ Multi-tenancy features  
+
+### Deprecated Features
+
+The following features are deprecated but still functional:
+
+- `getFieldsBySection()` - Use `fields()->bySection()` instead
+- `field_type_class` config - Use service provider registration
+
+These will be removed in v3.0.
+
+## Troubleshooting
+
+### Common Issues
+
+<AccordionGroup>
+  <Accordion title="Class not found after upgrade">
+    Run `composer dump-autoload` to regenerate the autoloader.
+  </Accordion>
+  
+  <Accordion title="Visibility rules not showing">
+    Ensure you've run migrations and cleared caches.
+  </Accordion>
+  
+  <Accordion title="Performance seems slower">
+    Check that lazy loading is enabled in your config file.
+  </Accordion>
+</AccordionGroup>
+
+### Getting Help
+
+If you encounter issues:
+
+1. Check the [changelog](https://github.com/relaticle/custom-fields/blob/main/CHANGELOG.md)
+2. Search [existing issues](https://github.com/relaticle/custom-fields/issues)
+3. Contact support: customfieldsnext@gmail.com
+
+## Rolling Back
+
+If you need to rollback to v1:
+
+```bash
+composer require relaticle/custom-fields:^1.0
+php artisan migrate:rollback --step=1
+php artisan cache:clear
+```
+
+<Warning>
+Rolling back will disable v2 features like visibility rules.
+</Warning>
+
+## Next Steps
+
+After upgrading:
+
+1. Test your existing functionality
+2. Explore [new v2 features](/v2/introduction)
+3. Implement [visibility rules](/v2/visibility-rules)
+4. Optimize performance with new settings
+
+Congratulations on upgrading to Custom Fields v2! 🎉

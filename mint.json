@@ -1,70 +1,82 @@
 {
-    "$schema": "https://mintlify.com/schema.json",
-    "name": "Filament Custom Fields",
-    "logo": {
-        "dark": "/logo/dark.svg",
-        "light": "/logo/light.svg"
-    },
-    "versions": [
-        "v1"
-    ],
-    "favicon": "/favicon.svg",
-    "colors": {
-        "primary": "#0D9373",
-        "light": "#07C983",
-        "dark": "#0D9373",
-        "anchors": {
-            "from": "#0D9373",
-            "to": "#07C983"
-        }
-    },
-    "topbarLinks": [
-        {
-            "name": "GitHub",
-            "url": "https://github.com/relaticle/custom-fields"
-        }
-    ],
-    "topbarCtaButton": {
-        "name": "Live Demo",
-        "url": "https://relaticle.com"
-    },
-    "navigation": [
-        {
-            "group": "Get Started",
-            "pages": [
-                "introduction",
-                "installation",
-                "quickstart"
-            ]
-        },
-        {
-            "group": "Essentials",
-            "pages": [
-                "essentials/configuration",
-                "essentials/authorization",
-                "essentials/preset-custom-fields",
-                "essentials/import-export",
-                "essentials/data-model"
-            ]
-        },
-        {
-            "group": "Help & Support",
-            "pages": [
-                "help-support/support",
-                "help-support/contributing"
-            ]
-        },
-        {
-            "group": "Legal & Acknowledgments",
-            "pages": [
-                "legal-acknowledgments/license",
-                "legal-acknowledgments/code-distribution"
-            ]
-        }
-    ],
-    "footerSocials": {
-        "x": "https://x.com/MinasyanManuk",
-        "github": "https://github.com/ManukMinasyan",
-        "linkedin": "https://www.linkedin.com/in/manukminasyan/"
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Filament Custom Fields",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "versions": [
+    "V1",
+    "V2-beta"
+  ],
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
     }
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/relaticle/custom-fields"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Live Demo",
+    "url": "https://relaticle.com"
+  },
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "installation",
+        "quickstart"
+      ],
+      "version": "V1"
+    },
+    {
+      "group": "Get Started",
+      "pages": [
+        "v2/introduction",
+        "v2/installation",
+        "v2/quickstart",
+        "v2/upgrade-guide"
+      ],
+      "version": "V2-beta"
+    },
+    {
+      "group": "Essentials",
+      "pages": [
+        "essentials/configuration",
+        "essentials/authorization",
+        "essentials/preset-custom-fields",
+        "essentials/import-export",
+        "essentials/data-model"
+      ]
+    },
+    {
+      "group": "Help & Support",
+      "pages": [
+        "help-support/support",
+        "help-support/contributing"
+      ]
+    },
+    {
+      "group": "Legal & Acknowledgments",
+      "pages": [
+        "legal-acknowledgments/license",
+        "legal-acknowledgments/code-distribution"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/MinasyanManuk",
+    "github": "https://github.com/ManukMinasyan",
+    "linkedin": "https://www.linkedin.com/in/manukminasyan/"
+  }
 }
