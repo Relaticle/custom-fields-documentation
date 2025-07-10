@@ -20,13 +20,13 @@
     },
     "topbarLinks": [
         {
-            "name": "Support",
-            "url": "mailto:customfieldsnext@gmail.com"
+            "name": "GitHub",
+            "url": "https://github.com/relaticle/custom-fields"
         }
     ],
     "topbarCtaButton": {
-        "name": "Buy now",
-        "url": "https://relaticle.lemonsqueezy.com/buy/803d5933-4b12-4869-9d93-f96797339603"
+        "name": "Live Demo",
+        "url": "https://relaticle.com"
     },
     "navigation": [
         {
