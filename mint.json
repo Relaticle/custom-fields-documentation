@@ -33,9 +33,9 @@
     {
       "group": "Get Started",
       "pages": [
-        "introduction",
-        "installation",
-        "quickstart"
+        "v1/introduction",
+        "v1/installation",
+        "v1/quickstart"
       ],
       "version": "V1"
     },
@@ -52,25 +52,37 @@
     {
       "group": "Essentials",
       "pages": [
-        "essentials/configuration",
-        "essentials/authorization",
-        "essentials/preset-custom-fields",
-        "essentials/import-export",
-        "essentials/data-model"
-      ]
+        "v1/essentials/configuration",
+        "v1/essentials/authorization",
+        "v1/essentials/preset-custom-fields",
+        "v1/essentials/import-export",
+        "v1/essentials/data-model"
+      ],
+      "version": "V1"
+    },
+    {
+      "group": "Essentials",
+      "pages": [
+        "v2/essentials/configuration",
+        "v2/essentials/authorization",
+        "v2/essentials/preset-custom-fields",
+        "v2/essentials/import-export",
+        "v2/essentials/data-model"
+      ],
+      "version": "V2-beta"
     },
     {
       "group": "Help & Support",
       "pages": [
-        "help-support/support",
-        "help-support/contributing"
+        "shared/help-support/support",
+        "shared/help-support/contributing"
       ]
     },
     {
       "group": "Legal & Acknowledgments",
       "pages": [
-        "legal-acknowledgments/license",
-        "legal-acknowledgments/code-distribution"
+        "shared/legal-acknowledgments/license",
+        "shared/legal-acknowledgments/code-distribution"
       ]
     }
   ],
