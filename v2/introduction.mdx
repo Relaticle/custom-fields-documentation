@@ -1,11 +1,132 @@
 ---
 title: 'Introduction to Custom Fields V2'
-sidebarTitle: 'Custom Fields V2'
-description: 'Explore the powerful new features in Custom Fields version 2'
+sidebarTitle: 'Introduction'
+description: 'Enterprise-grade custom field management for Laravel and Filament 4 applications'
 icon: 'sparkles'
 version: 'V2-beta'
 ---
 
 <Warning>
-**Beta Version** - Version 2 is currently in beta. While fully functional, some features may change before the final release. For production use, consider staying on V1 stable.
+**Beta Version** - Version 2 is currently in beta. Features are stable and production-ready, but API changes may occur before the final release. See our [upgrade guide](/v2/upgrade-guide) for migration from V1.
 </Warning>
+
+## What is Custom Fields?
+
+Custom Fields is a powerful Laravel package that enables dynamic field management in Filament applications without requiring database migrations. Version 2 represents a complete architectural overhaul, introducing enterprise features like multi-tenancy, conditional visibility, and advanced import/export capabilities.
+
+<CardGroup cols={2}>
+  <Card title="Zero Migrations" icon="database">
+    Add custom fields to any model without modifying your database schema
+  </Card>
+  <Card title="Full Filament Integration" icon="puzzle-piece">
+    Native support for Filament 4 forms, tables, and infolists
+  </Card>
+  <Card title="Multi-Tenancy Ready" icon="building">
+    Complete tenant isolation with queue job support
+  </Card>
+  <Card title="Import/Export" icon="file-import">
+    Built-in CSV import/export with type-safe value conversion
+  </Card>
+</CardGroup>
+
+## What's New in Version 2
+
+Version 2 is a major release with significant improvements over V1:
+
+### Enhanced Architecture
+- **Filament 4 Support** - Built from the ground up for Filament 4
+- **Laravel Data Integration** - Type-safe DTOs using Spatie's Laravel Data
+- **Entity Management System** - Automatic discovery and configuration of entities
+- **Performance Optimizations** - Cached entity discovery and optimized queries
+
+### Enterprise Features
+- **Multi-Tenancy** - Full tenant isolation with automatic scoping
+- **Conditional Visibility** - Show/hide fields based on complex logic
+- **Import/Export** - CSV support with intelligent value conversion
+- **Field Migrations** - Define fields programmatically via migrations
+
+### New Field Types
+- **Currency Field** - Dedicated currency input with formatting
+- **Link Field** - URL validation and formatting
+- **Toggle Buttons** - Radio-style toggle selections
+- **Tags Input** - Tag entry with auto-completion
+- **Markdown Editor** - Rich markdown editing support
+
+### Developer Experience
+- **Type Safety** - Full type safety with DTOs and enums
+- **Service Architecture** - Modular service providers
+- **Extensibility** - Clean interfaces for customization
+- **Modern PHP** - Requires PHP 8.3 for latest language features
+
+## Core Features
+
+<Tabs>
+  <Tab title="Field Management">
+    - **18+ Field Types** - Text, number, select, date, and more
+    - **Drag-and-Drop Ordering** - Intuitive field organization
+    - **Section Management** - Group fields into logical sections
+    - **Field Validation** - Laravel validation rules support
+    - **Field Encryption** - Optional encryption for sensitive data
+  </Tab>
+  <Tab title="Integration">
+    - **Form Integration** - Drop-in component for Filament forms
+    - **Table Columns** - Display custom fields in tables
+    - **Infolist Support** - Show custom fields in read-only views
+    - **Filter Support** - Filter tables by custom field values
+    - **Toggleable Columns** - Users can show/hide custom columns
+  </Tab>
+  <Tab title="Advanced">
+    - **Conditional Logic** - Complex show/hide rules with AND/OR support
+    - **Lookup Entities** - Use other models as data sources
+    - **Preset Fields** - Developer-defined fields via migrations
+    - **Value Converters** - Type-safe import/export conversion
+    - **Queue Support** - Tenant context persists in jobs
+  </Tab>
+</Tabs>
+
+## Use Cases
+
+Custom Fields V2 is ideal for applications that need:
+
+- **CRM Systems** - Add client-specific fields without code changes
+- **E-commerce** - Dynamic product attributes per category
+- **Multi-tenant SaaS** - Tenant-specific customizations
+- **Enterprise Applications** - Department-specific data fields
+- **Workflow Systems** - Stage-specific field requirements
+
+## System Requirements
+
+- PHP 8.3 or higher
+- Laravel 10.0 or higher
+- Filament 4.0 or higher
+- MySQL 8.0+ / PostgreSQL 13+ / SQLite 3.35+
+
+## License
+
+Custom Fields uses a dual-license model:
+
+- **Open Source** - AGPL-3.0 for open source projects
+- **Commercial** - Paid license for proprietary applications
+
+<Note>
+Existing V1 customers receive free upgrades to V2. Lifetime licenses remain valid for all future versions.
+</Note>
+
+## Getting Started
+
+Ready to add dynamic custom fields to your Filament application?
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/v2/installation">
+    Get started with Custom Fields V2 in minutes
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/v2/quickstart">
+    Build your first custom field implementation
+  </Card>
+  <Card title="Upgrade from V1" icon="arrow-up" href="/v2/upgrade-guide">
+    Migrate your existing V1 installation
+  </Card>
+  <Card title="Configuration" icon="cog" href="/v2/configuration">
+    Customize Custom Fields for your needs
+  </Card>
+</CardGroup>

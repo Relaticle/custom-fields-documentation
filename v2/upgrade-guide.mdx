@@ -1,7 +1,390 @@
 ---
 title: 'Upgrade Guide'
-description: 'Step-by-step guide for upgrading Custom Fields from v1 to v2'
+description: 'Step-by-step guide for upgrading Custom Fields from V1 to V2'
 icon: 'arrow-up'
 version: 'V2-beta'
 ---
+
+This guide will help you upgrade your existing Custom Fields V1 installation to V2. Version 2 is a major release with significant architectural improvements and new features.
+
+<Warning>
+**Important**: V2 contains breaking changes. Please read this guide completely before upgrading and test thoroughly in a non-production environment first.
+</Warning>
+
+## Overview of Changes
+
+### Major Changes
+- **Filament 4 Required**: V2 requires Filament 4.0+ (V1 uses Filament 3.0)
+- **PHP 8.3 Required**: Minimum PHP version increased from 8.2 to 8.3
+- **New Architecture**: Complete refactor with service-based architecture
+- **Entity System**: New entity management system replaces manual configuration
+- **Multi-Tenancy**: Built-in tenant isolation support
+- **Import/Export**: Native CSV import/export functionality
+- **Conditional Visibility**: Complex show/hide logic for fields
+
+### Breaking Changes
+- Changed namespace structure
+- New trait and interface names
+- Updated configuration format
+- Modified method signatures
+- Database schema additions
+
+## Pre-Upgrade Checklist
+
+Before starting the upgrade:
+
+- [ ] Ensure your application meets V2 requirements (PHP 8.3+, Filament 4.0+)
+- [ ] Backup your database
+- [ ] Backup your codebase
+- [ ] Review custom code that extends Custom Fields
+- [ ] Plan for testing time
+- [ ] Note any customizations you've made to V1
+
+<Note>
+Existing V1 license holders automatically receive V2 access. No new license purchase needed.
+</Note>
+
+## Step-by-Step Upgrade Process
+
+### Step 1: Update Dependencies
+
+Update your `composer.json` to require V2:
+
+```bash
+composer require relaticle/custom-fields:^2.0 --with-all-dependencies
+```
+
+<Warning>
+This will update to V2 and may update other dependencies. Review the changes carefully.
+</Warning>
+
+### Step 2: Update PHP Version
+
+Ensure your environment runs PHP 8.3 or higher:
+
+```bash
+php -v
+```
+
+If needed, update your PHP version before proceeding.
+
+### Step 3: Publish and Run New Migrations
+
+V2 includes database schema updates:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-migrations" --force
+php artisan migrate
+```
+
+Database changes in V2:
+- **Updated**: `custom_field_options` table - Added `settings` JSON column for features like color options
+- **Updated**: All tables now support multi-tenancy with optional `tenant_id` columns
+- **Updated**: Various schema optimizations and constraint improvements
+
+### Step 4: Update Configuration
+
+Publish the new configuration file:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-config" --force
+```
+
+The V2 configuration has a different structure. Key changes:
+
+```php
+// V1 Configuration
+return [
+    'models' => [
+        'custom_field' => CustomField::class,
+    ],
+    'authorization' => [
+        'enabled' => true,
+    ],
+];
+
+// V2 Configuration
+return [
+    'features' => [
+        'conditional_visibility' => ['enabled' => true],
+        'encryption' => ['enabled' => true],
+        'select_option_colors' => ['enabled' => true],
+    ],
+    'entity_management' => [
+        'auto_discover_entities' => true,
+        'entity_discovery_paths' => [app_path('Models')],
+    ],
+    'multi_tenancy' => [
+        'enabled' => false,
+        'tenant_column' => 'tenant_id',
+    ],
+];
+```
+
+### Step 5: Update Your Models
+
+Update models that use custom fields:
+
+```php
+// V1 Implementation
+use Relaticle\CustomFields\Concerns\HasCustomFields;
+
+class Product extends Model
+{
+    use HasCustomFields;
+}
+
+// V2 Implementation
+use Relaticle\CustomFields\Contracts\HasCustomFields;
+use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
+
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+}
+```
+
+<Note>
+In V2, the interface name is the same but in a different namespace. The trait has been renamed from `HasCustomFields` to `UsesCustomFields`.
+</Note>
+
+### Step 6: Update Filament Resources
+
+#### Form Components
+
+```php
+// V1
+use Relaticle\CustomFields\Filament\Forms\Components\CustomFields;
+
+CustomFields::make('custom_fields')
+
+// V2
+use Relaticle\CustomFields\Forms\Components\CustomFieldsComponent;
+
+CustomFieldsComponent::make()
+```
+
+#### Table Integration
+
+```php
+// V1
+use Relaticle\CustomFields\Filament\Tables\Concerns\HasCustomFieldsTable;
+
+class ProductResource extends Resource
+{
+    use HasCustomFieldsTable;
+}
+
+// V2
+use Relaticle\CustomFields\Tables\Concerns\InteractsWithCustomFields;
+
+class ProductResource extends Resource
+{
+    use InteractsWithCustomFields;
+}
+```
+
+#### Infolist Components
+
+```php
+// V1
+use Relaticle\CustomFields\Filament\Infolists\Components\CustomFieldsInfolist;
+
+CustomFieldsInfolist::make('custom_fields')
+
+// V2
+use Relaticle\CustomFields\Infolists\Components\CustomFieldsInfolists;
+
+CustomFieldsInfolists::make()
+```
+
+### Step 7: Update Import/Export Code
+
+V2 has completely new import/export functionality:
+
+```php
+// V1 - Manual implementation required
+
+// V2 - Built-in support
+use Relaticle\CustomFields\Filament\Exports\CustomFieldsExporter;
+use Relaticle\CustomFields\Filament\Imports\CustomFieldsImporter;
+
+Tables\Actions\ExportAction::make()
+    ->exporter(CustomFieldsExporter::class),
+    
+Tables\Actions\ImportAction::make()
+    ->importer(CustomFieldsImporter::class),
+```
+
+### Step 8: Update Custom Extensions
+
+If you've extended Custom Fields classes:
+
+1. Review the new namespace structure
+2. Update imports and class references
+3. Check for changed method signatures
+4. Test thoroughly
+
+Common namespace changes:
+- `Relaticle\CustomFields\Filament\*` → `Relaticle\CustomFields\*`
+- `Relaticle\CustomFields\Models\*` → Same (mostly unchanged)
+- `Relaticle\CustomFields\Concerns\*` → `Relaticle\CustomFields\Models\Concerns\*`
+
+### Step 9: Enable New Features (Optional)
+
+#### Multi-Tenancy
+
+```php
+// In config/custom-fields.php
+'multi_tenancy' => [
+    'enabled' => true,
+    'tenant_column' => 'tenant_id',
+    'queue_tenant_awareness' => true,
+],
+```
+
+#### Entity Auto-Discovery
+
+```php
+'entity_management' => [
+    'auto_discover_entities' => true,
+    'entity_discovery_paths' => [
+        app_path('Models'),
+    ],
+],
+```
+
+### Step 10: Clear All Caches
+
+```bash
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+```
+
+### Step 11: Test Your Application
+
+1. **Test Custom Field Creation**: Create new fields via the admin panel
+2. **Test Existing Fields**: Ensure V1 fields still work
+3. **Test Data Entry**: Verify form submission works
+4. **Test Display**: Check tables and infolists
+5. **Test Import/Export**: If using this feature
+6. **Test Conditional Logic**: Create fields with visibility conditions
+
+## Migration Helpers
+
+### Automated Entity Registration
+
+If you had manual entity registration in V1, V2 can auto-discover entities:
+
+```php
+// V1 - Manual registration needed
+// V2 - Automatic with HasCustomFields interface
+```
+
+### Field Migration Script
+
+To migrate preset fields from V1 code to V2 migrations:
+
+```php
+// Create: database/custom-fields/2024_01_01_migrate_v1_fields.php
+use Relaticle\CustomFields\Support\CustomFieldsMigrator;
+
+return new class extends CustomFieldsMigrator
+{
+    public function entity(): string
+    {
+        return 'products'; // Your entity key
+    }
+
+    public function up(): void
+    {
+        // Recreate your V1 preset fields
+        $this->createSection('General Information');
+        
+        $this->createField('legacy_code', 'text')
+            ->label('Legacy Code')
+            ->required();
+    }
+};
+```
+
+Run: `php artisan custom-fields:migrate`
+
+## Post-Upgrade Checklist
+
+- [ ] All models using custom fields updated
+- [ ] All Filament resources updated
+- [ ] Configuration migrated to V2 format
+- [ ] Custom extensions updated
+- [ ] All features tested
+- [ ] Performance verified
+- [ ] No console errors
+- [ ] Data integrity confirmed
+
+## Rollback Plan
+
+If you need to rollback to V1:
+
+1. Restore your database backup
+2. Restore your code backup
+3. Run `composer require relaticle/custom-fields:^1.0`
+4. Clear all caches
+
+<Warning>
+Once you start using V2-specific features (conditional visibility, import/export), rolling back becomes more complex.
+</Warning>
+
+## Common Issues and Solutions
+
+### Issue: Class not found errors
+
+**Solution**: Update namespaces and run `composer dump-autoload`
+
+### Issue: Existing custom fields not showing
+
+**Solution**: Clear entity cache: `php artisan cache:forget custom-fields.entities`
+
+### Issue: Multi-tenancy not working
+
+**Solution**: Ensure tenant column exists and middleware sets tenant context
+
+### Issue: Import/export not available
+
+**Solution**: Update header actions in your resource
+
+## New V2 Features to Explore
+
+After successful upgrade, explore these new capabilities:
+
+- **Conditional Visibility**: Create dynamic forms
+- **Import/Export**: Bulk data management
+- **Field Migrations**: Version control your fields
+- **Multi-Tenancy**: Tenant-isolated fields
+- **Entity Discovery**: Automatic model detection
+- **New Field Types**: Currency, Link, Tags, Toggle Buttons
+
+## Getting Help
+
+- **Documentation**: Review the V2 documentation thoroughly
+- **GitHub Issues**: Report bugs or issues
+- **Support**: Contact support for licensed users
+
+<Note>
+Remember to remove any V1-specific workarounds or customizations that are now handled natively in V2.
+</Note>
+
+## Summary
+
+V2 is a significant upgrade that modernizes the codebase and adds enterprise features. While the upgrade requires careful attention to breaking changes, the new features and improved architecture make it worthwhile.
+
+Key benefits of upgrading:
+- Better performance with entity caching
+- Enterprise features like multi-tenancy
+- Native import/export functionality
+- Modern PHP 8.3 features
+- Improved developer experience
+
+Take your time with the upgrade, test thoroughly, and enjoy the new capabilities of Custom Fields V2!
 

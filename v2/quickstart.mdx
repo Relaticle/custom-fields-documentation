@@ -1,6 +1,391 @@
 ---
-title: 'Quickstart'
+title: 'Quick Start'
+description: 'Get up and running with Custom Fields V2 in minutes'
 icon: 'rocket'
 version: 'V2-beta'
 ---
 
+This guide will walk you through adding custom fields to a Product model in a Filament application. By the end, you'll have a fully functional custom fields implementation with all V2 features.
+
+## Prerequisites
+
+Before starting, ensure you have:
+- Completed the [installation](/v2/installation) process
+- A Filament 4 application with at least one resource
+- A model you want to add custom fields to (we'll use `Product`)
+
+## Step 1: Prepare Your Model
+
+Add the `HasCustomFields` interface and `UsesCustomFields` trait to your model:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Relaticle\CustomFields\Contracts\HasCustomFields;
+use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
+
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+    
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'tenant_id', // If using multi-tenancy
+    ];
+}
+```
+
+<Note>
+The `HasCustomFields` interface enables automatic entity discovery in V2. Your model will be automatically registered as a custom fields entity.
+</Note>
+
+## Step 2: Update Your Filament Resource
+
+### Add to Form Schema
+
+In your `ProductResource`, add the custom fields component to your form:
+
+```php
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Models\Product;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Relaticle\CustomFields\Forms\Components\CustomFieldsComponent;
+
+class ProductResource extends Resource
+{
+    protected static ?string $model = Product::class;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\Section::make('Product Details')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required(),
+                        Forms\Components\Textarea::make('description'),
+                        Forms\Components\TextInput::make('price')
+                            ->numeric()
+                            ->prefix('$')
+                            ->required(),
+                    ]),
+                
+                // Add custom fields component
+                Forms\Components\Section::make('Additional Information')
+                    ->schema([
+                        CustomFieldsComponent::make(),
+                    ]),
+            ]);
+    }
+}
+```
+
+### Add to Table Columns
+
+Enable custom fields in your table by using the `InteractsWithCustomFields` trait:
+
+```php
+<?php
+
+namespace App\Filament\Resources;
+
+use Filament\Tables;
+use Filament\Tables\Table;
+use Relaticle\CustomFields\Tables\Concerns\InteractsWithCustomFields;
+
+class ProductResource extends Resource
+{
+    use InteractsWithCustomFields;
+    
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('price')
+                    ->money()
+                    ->sortable(),
+                
+                // Custom fields will be automatically added
+                // as toggleable columns
+            ])
+            ->filters([
+                // Filters
+            ]);
+    }
+}
+```
+
+### Add to Infolist (Optional)
+
+Display custom fields in read-only views:
+
+```php
+use Filament\Infolists\Infolist;
+use Relaticle\CustomFields\Infolists\Components\CustomFieldsInfolists;
+
+public static function infolist(Infolist $infolist): Infolist
+{
+    return $infolist
+        ->schema([
+            Infolists\Components\Section::make('Product Details')
+                ->schema([
+                    Infolists\Components\TextEntry::make('name'),
+                    Infolists\Components\TextEntry::make('price')
+                        ->money(),
+                ]),
+            
+            // Add custom fields to infolist
+            CustomFieldsInfolists::make(),
+        ]);
+}
+```
+
+## Step 3: Create Your First Custom Field
+
+Now your users can create custom fields through the admin panel:
+
+1. Navigate to **Custom Fields** in your Filament admin panel
+2. Click **Create Custom Field**
+3. Fill in the field details:
+   - **Entity**: Select "Product"
+   - **Field Type**: Choose from 18+ available types
+   - **Label**: e.g., "SKU Number"
+   - **Name**: e.g., "sku_number"
+   - **Validation**: Add Laravel validation rules
+
+## Step 4: Advanced Features
+
+### Enable Multi-Tenancy
+
+If your application uses multi-tenancy, ensure it's configured:
+
+```php
+// In your model
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+    
+    // Define the tenant relationship
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+}
+```
+
+### Add Conditional Visibility
+
+Create fields that show/hide based on other field values:
+
+1. Create a "Product Type" select field with options
+2. Create a "Warranty Period" field
+3. Set visibility condition: Show "Warranty Period" only when "Product Type" equals "Electronics"
+
+### Import/Export with Custom Fields
+
+Enable CSV import/export in your resource:
+
+```php
+use Relaticle\CustomFields\Filament\Exports\CustomFieldsExporter;
+use Relaticle\CustomFields\Filament\Imports\CustomFieldsImporter;
+
+protected function getHeaderActions(): array
+{
+    return [
+        // Export with custom fields
+        Tables\Actions\ExportAction::make()
+            ->exporter(CustomFieldsExporter::class),
+            
+        // Import with custom fields
+        Tables\Actions\ImportAction::make()
+            ->importer(CustomFieldsImporter::class),
+    ];
+}
+```
+
+### Create Fields via Migration
+
+Define fields programmatically for deployment:
+
+```php
+// database/custom-fields/2024_01_01_000000_create_product_custom_fields.php
+use Relaticle\CustomFields\Support\CustomFieldsMigrator;
+
+return new class extends CustomFieldsMigrator
+{
+    public function entity(): string
+    {
+        return 'products';
+    }
+
+    public function up(): void
+    {
+        $this->createSection('Product Specifications');
+        
+        $this->createField('brand', 'text')
+            ->label('Brand')
+            ->required()
+            ->placeholder('Enter brand name');
+            
+        $this->createField('warranty_type', 'select')
+            ->label('Warranty Type')
+            ->options([
+                'none' => 'No Warranty',
+                'manufacturer' => 'Manufacturer Warranty',
+                'extended' => 'Extended Warranty',
+            ]);
+            
+        $this->createField('specifications', 'json')
+            ->label('Technical Specifications')
+            ->helperText('Add technical details');
+    }
+};
+```
+
+Run the migration:
+
+```bash
+php artisan custom-fields:migrate
+```
+
+## Step 5: Test Your Implementation
+
+1. **Create a Product**: Fill in both standard and custom fields
+2. **View in Table**: Custom fields appear as toggleable columns
+3. **Edit Product**: Custom fields persist and validate correctly
+4. **Export Data**: CSV includes custom field values
+5. **Test Visibility**: Conditional fields show/hide as configured
+
+## Complete Example
+
+Here's a complete Product resource with all V2 features:
+
+```php
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Models\Product;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Relaticle\CustomFields\Forms\Components\CustomFieldsComponent;
+use Relaticle\CustomFields\Tables\Concerns\InteractsWithCustomFields;
+use Relaticle\CustomFields\Filament\Exports\CustomFieldsExporter;
+use Relaticle\CustomFields\Filament\Imports\CustomFieldsImporter;
+
+class ProductResource extends Resource
+{
+    use InteractsWithCustomFields;
+    
+    protected static ?string $model = Product::class;
+    
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\Grid::make()
+                    ->schema([
+                        Forms\Components\Section::make('Product Information')
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->required()
+                                    ->maxLength(255),
+                                Forms\Components\Textarea::make('description')
+                                    ->columnSpanFull(),
+                                Forms\Components\TextInput::make('price')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->required(),
+                            ])
+                            ->columns(2),
+                        
+                        Forms\Components\Section::make('Custom Fields')
+                            ->schema([
+                                CustomFieldsComponent::make(),
+                            ]),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('price')
+                    ->money()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                //
+            ])
+            ->headerActions([
+                Tables\Actions\ExportAction::make()
+                    ->exporter(CustomFieldsExporter::class),
+                Tables\Actions\ImportAction::make()
+                    ->importer(CustomFieldsImporter::class),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+}
+```
+
+## Next Steps
+
+Congratulations! You now have a working Custom Fields V2 implementation. Explore these advanced topics:
+
+<CardGroup cols={2}>
+  <Card title="Field Types" icon="list" href="/v2/field-types">
+    Explore all 18+ available field types
+  </Card>
+  <Card title="Conditional Logic" icon="code-branch" href="/v2/conditional-visibility">
+    Create dynamic forms with field dependencies
+  </Card>
+  <Card title="Import/Export" icon="file-arrow-down" href="/v2/import-export">
+    Bulk data management with custom fields
+  </Card>
+  <Card title="Multi-Tenancy" icon="users" href="/v2/multi-tenancy">
+    Implement tenant-isolated custom fields
+  </Card>
+</CardGroup>
+
+## Tips and Best Practices
+
+- **Entity Discovery**: Let V2 automatically discover your models - no manual registration needed
+- **Field Naming**: Use descriptive, lowercase names with underscores (e.g., `warranty_period`)
+- **Validation**: Leverage Laravel's validation rules for data integrity
+- **Performance**: Enable entity caching for better performance in production
+- **Organization**: Use sections to group related custom fields
+
+<Note>
+Need help? Check our [troubleshooting guide](/v2/troubleshooting) or visit the [GitHub repository](https://github.com/relaticle/custom-fields).
+</Note>

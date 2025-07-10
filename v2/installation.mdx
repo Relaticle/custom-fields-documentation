@@ -1,13 +1,256 @@
 ---
 title: 'Installation'
+description: 'Install and configure Custom Fields V2 for your Filament application'
 icon: 'download'
 version: 'V2-beta'
 ---
 
-**Custom Fields** is now open source and can be installed directly via Composer for all users. The installation process is the same whether you're using the AGPL-3.0 or Commercial license.
-
 ## Requirements
 
-- **PHP**: 8.3 or higher
-- **Filament**: 4.0 or higher
+Before installing Custom Fields V2, ensure your environment meets these requirements:
 
+- **PHP**: 8.3 or higher
+- **Laravel**: 10.0 or higher (via Filament requirements)
+- **Filament**: 4.0 or higher
+- **Database**: MySQL 8.0+ / PostgreSQL 13+ / SQLite 3.35+
+- **Composer**: 2.0 or higher
+
+<Note>
+Custom Fields V2 requires Filament 4. If you're using Filament 3, please use [Custom Fields V1](/v1/installation).
+</Note>
+
+## Installation Steps
+
+### 1. Install via Composer
+
+```bash
+composer require relaticle/custom-fields:^2.0
+```
+
+<Warning>
+If upgrading from V1, please follow our [upgrade guide](/v2/upgrade-guide) instead of these installation steps.
+</Warning>
+
+### 2. Publish and Run Migrations
+
+Publish the package migrations:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-migrations"
+```
+
+Run the migrations to create the necessary database tables:
+
+```bash
+php artisan migrate
+```
+
+This creates the following tables:
+- `custom_field_sections` - Organizes fields into groups
+- `custom_fields` - Stores field definitions
+- `custom_field_options` - Stores options for select/radio fields (V2 adds `settings` JSON column)
+- `custom_field_values` - Stores the actual field values
+
+### 3. Configure Your License (Commercial Use)
+
+For commercial use, add your license key to your `.env` file:
+
+```bash
+CUSTOM_FIELDS_LICENSE_KEY="your-license-key-here"
+```
+
+<Note>
+Open source projects using the AGPL-3.0 license don't need a license key. Commercial licenses can be purchased at [custom-fields.relaticle.com](https://custom-fields.relaticle.com).
+</Note>
+
+### 4. Publish Configuration (Optional)
+
+To customize the package configuration, publish the config file:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-config"
+```
+
+This creates `config/custom-fields.php` with extensive customization options.
+
+### 5. Configure Entity Discovery (Recommended)
+
+Custom Fields V2 can automatically discover models that implement the `HasCustomFields` interface. To enable this feature, ensure your config includes:
+
+```php
+'entity_management' => [
+    'auto_discover_entities' => true,
+    'entity_discovery_paths' => [
+        app_path('Models'),
+    ],
+    'cache_entities' => true,
+    'cache_duration' => 86400, // 24 hours
+],
+```
+
+### 6. Multi-Tenancy Setup (Optional)
+
+If your application uses multi-tenancy, configure the tenant settings:
+
+```php
+'multi_tenancy' => [
+    'enabled' => true,
+    'tenant_column' => 'tenant_id',
+    'queue_tenant_awareness' => true,
+],
+```
+
+Add the tenant column to your `.env`:
+
+```bash
+CUSTOM_FIELDS_TENANT_COLUMN="tenant_id"
+```
+
+### 7. Clear Caches
+
+After installation, clear all caches:
+
+```bash
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+```
+
+## Optional Setup
+
+### Publish Translations
+
+To customize translations:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-translations"
+```
+
+### Publish Views
+
+To customize the UI components:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-views"
+```
+
+### Create Custom Fields Migrations Directory
+
+For programmatic field creation via migrations:
+
+```bash
+mkdir database/custom-fields
+```
+
+## Configuration Options
+
+The published configuration file includes:
+
+### Features Configuration
+
+```php
+'features' => [
+    'conditional_visibility' => [
+        'enabled' => true,
+    ],
+    'encryption' => [
+        'enabled' => true,
+        'key' => env('CUSTOM_FIELDS_ENCRYPTION_KEY'),
+    ],
+    'select_option_colors' => [
+        'enabled' => true,
+    ],
+],
+```
+
+### Entity Management
+
+```php
+'entity_management' => [
+    'auto_discover_entities' => true,
+    'entity_discovery_paths' => [
+        app_path('Models'),
+    ],
+    'excluded_models' => [
+        // Models to exclude from auto-discovery
+    ],
+    'entities' => [
+        // Manual entity registration
+        // 'products' => [
+        //     'model' => App\Models\Product::class,
+        //     'features' => ['custom_fields', 'lookup_source'],
+        // ],
+    ],
+],
+```
+
+### Import/Export Configuration
+
+```php
+'import_export' => [
+    'chunk_size' => 1000,
+    'queue_imports' => true,
+    'queue_exports' => true,
+],
+```
+
+## Verify Installation
+
+To verify the installation was successful:
+
+1. Check migrations ran successfully:
+```bash
+php artisan migrate:status
+```
+
+2. Verify the configuration:
+```bash
+php artisan config:show custom-fields
+```
+
+3. Clear and cache configuration:
+```bash
+php artisan config:cache
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/v2/quickstart">
+    Build your first custom field implementation
+  </Card>
+  <Card title="Configuration" icon="cog" href="/v2/configuration">
+    Explore all configuration options
+  </Card>
+  <Card title="Entity Setup" icon="database" href="/v2/entity-setup">
+    Configure models for custom fields
+  </Card>
+  <Card title="Field Types" icon="list" href="/v2/field-types">
+    Explore available field types
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### Common Issues
+
+**Class not found errors**
+- Run `composer dump-autoload`
+- Clear cached configuration: `php artisan config:clear`
+
+**Migration errors**
+- Ensure your database meets the minimum version requirements
+- Check for conflicting table names
+
+**Entity discovery not working**
+- Clear the entity cache: `php artisan cache:forget custom-fields.entities`
+- Verify models implement `HasCustomFields` interface
+- Check excluded models configuration
+
+**Multi-tenancy issues**
+- Ensure tenant column exists in your models
+- Verify tenant context is set in your middleware
+
+<Note>
+For additional help, visit our [GitHub repository](https://github.com/relaticle/custom-fields) or contact support.
+</Note>
