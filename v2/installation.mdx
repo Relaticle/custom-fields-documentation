@@ -1,13 +1,252 @@
 ---
 title: 'Installation'
+description: 'Install Custom Fields V2 in your Laravel application with entity management'
 icon: 'download'
 version: 'V2-beta'
 ---
 
-**Custom Fields** is now open source and can be installed directly via Composer for all users. The installation process is the same whether you're using the AGPL-3.0 or Commercial license.
+<Note>
+  This documentation is for Custom Fields V2 (Beta). 
+  For V1 documentation, see [here](/v1/installation).
+</Note>
 
 ## Requirements
 
-- **PHP**: 8.3 or higher
-- **Filament**: 4.0 or higher
+Before installing Custom Fields V2, ensure your environment meets these requirements:
 
+<Warning>
+  Custom Fields V2 requires PHP 8.3+ and Filament 4.0+. These are breaking changes from V1.
+</Warning>
+
+### System Requirements
+- **PHP**: 8.3 or higher
+- **Laravel**: 11.0 or higher
+- **Filament**: 4.0 or higher
+- **Database**: MySQL 8.0+, PostgreSQL 12+, or SQLite 3.35+
+
+### Verify Requirements
+
+Run this command to check your environment:
+
+```bash
+php -v  # Should show PHP 8.3.0 or higher
+composer show filament/filament  # Should show 4.0.0 or higher
+php artisan --version  # Should show Laravel 11.0 or higher
+```
+
+## Installation Steps
+
+### Step 1: Install via Composer
+
+Install the Custom Fields package using Composer:
+
+```bash
+composer require relaticle/custom-fields:^2.0
+```
+
+<Info>
+  The package is now open source. Both AGPL-3.0 and Commercial license users install the same way.
+</Info>
+
+### Step 2: Publish Configuration
+
+Publish the configuration file to customize settings:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-config"
+```
+
+This creates `config/custom-fields.php` with default settings for entity management, features, and more.
+
+### Step 3: Run Migrations
+
+Publish and run the database migrations:
+
+```bash
+php artisan vendor:publish --tag="custom-fields-migrations"
+php artisan migrate
+```
+
+<Warning>
+  If upgrading from V1, use the migration guide instead to preserve existing data.
+</Warning>
+
+### Step 4: Add Plugin to Filament Panel
+
+Register the Custom Fields plugin in your Filament panel provider:
+
+```php
+use Relaticle\CustomFields\CustomFieldsPlugin;
+use Filament\Panel;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugins([
+            CustomFieldsPlugin::make()
+                ->entityDiscovery(true) // Enable automatic entity discovery
+                ->discoverEntitiesIn(['app/Models']) // Specify discovery paths
+                ->entityCacheLifetime(3600) // Cache entities for 1 hour
+        ]);
+}
+```
+
+### Step 5: Configure Entity Registration
+
+<Tabs>
+  <Tab title="Automatic Discovery">
+    Enable automatic entity discovery in `config/custom-fields.php`:
+    
+    ```php
+    'entities' => [
+        'auto_discover' => true,
+        'directories' => ['app/Models'],
+        'base_model' => \Illuminate\Database\Eloquent\Model::class,
+    ],
+    ```
+    
+    Models will be automatically discovered if they:
+    - Implement `HasCustomFields` interface
+    - Use `UsesCustomFields` trait
+    - Have an associated Filament resource
+  </Tab>
+  
+  <Tab title="Manual Registration">
+    Register entities manually in a service provider:
+    
+    ```php
+    use Relaticle\CustomFields\Facades\CustomFields;
+    use App\Models\Product;
+    
+    public function boot(): void
+    {
+        CustomFields::registerEntity(Product::class, [
+            'label' => 'Product',
+            'plural_label' => 'Products',
+            'icon' => 'heroicon-o-shopping-bag',
+            'search_attributes' => ['name', 'sku'],
+            'primary_attribute' => 'name',
+            'features' => [
+                'custom_fields' => true,
+                'lookup_source' => true,
+            ],
+        ]);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Post-Installation Setup
+
+### Configure Your Models
+
+Add the Custom Fields interface and trait to models that need custom fields:
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
+use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
+
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+    
+    // Your model code...
+}
+```
+
+### Verify Installation
+
+Check that entities are properly registered:
+
+```bash
+php artisan custom-fields:list-entities
+```
+
+This command displays all registered entities and their configuration.
+
+### Clear Caches
+
+After configuration changes, clear relevant caches:
+
+```bash
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
+```
+
+## Configuration Options
+
+Key configuration options in `config/custom-fields.php`:
+
+```php
+return [
+    // Entity Management
+    'entities' => [
+        'auto_discover' => true,
+        'directories' => ['app/Models'],
+        'cache_lifetime' => 3600,
+    ],
+    
+    // Feature Toggles
+    'features' => [
+        'sections' => true,
+        'import_export' => true,
+        'conditional_visibility' => true,
+        'encryption' => true,
+        'multi_tenancy' => false,
+    ],
+    
+    // Import/Export Settings
+    'import_export' => [
+        'chunk_size' => 1000,
+        'timeout' => 300,
+        'temporary_directory' => storage_path('app/imports'),
+    ],
+];
+```
+
+## Troubleshooting
+
+### Entity Not Discovered
+
+If your model isn't automatically discovered:
+
+1. Verify it implements `HasCustomFields` interface
+2. Check it uses `UsesCustomFields` trait
+3. Ensure it has a Filament resource
+4. Clear entity cache: `php artisan cache:forget custom-fields.entities`
+
+### Migration Errors
+
+If migrations fail:
+
+1. Check database permissions
+2. Verify no table conflicts exist
+3. For upgrades, follow the [upgrade guide](/v2/upgrade-guide)
+
+### Permission Issues
+
+Ensure proper directory permissions:
+
+```bash
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
+```
+
+## Next Steps
+
+- Follow the [Quickstart Tutorial](/v2/quickstart) to create your first custom fields
+- Review [Entity Management](/v2/core-concepts/entity-management) concepts
+- Explore [Field Types](/v2/field-types) available in V2
+- For V1 users, see the [Upgrade Guide](/v2/upgrade-guide)
+
+## License Information
+
+Custom Fields V2 is dual-licensed:
+- **AGPL-3.0**: For open source projects
+- **Commercial**: For proprietary applications
+
+See [License Information](/help/license) for details.

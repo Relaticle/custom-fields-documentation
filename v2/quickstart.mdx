@@ -1,6 +1,352 @@
 ---
 title: 'Quickstart'
+description: 'Get up and running with Custom Fields V2 in 15 minutes'
 icon: 'rocket'
 version: 'V2-beta'
 ---
 
+<Note>
+  This 15-minute tutorial gets you from zero to a working product catalog with custom fields. We'll use a Product model as our example.
+</Note>
+
+## What We'll Build
+
+In this quickstart, you'll create:
+- ✅ A Product model with custom fields
+- ✅ Dynamic form fields for product attributes
+- ✅ Table columns showing custom data
+- ✅ Conditional fields based on product type
+- ✅ Import functionality for bulk data
+
+## Prerequisites
+
+<Info>
+  This tutorial assumes you've already [installed Custom Fields V2](/v2/installation). If not, complete the installation first.
+</Info>
+
+- Laravel 11.x application
+- Filament 4.0 admin panel
+- Custom Fields V2 installed
+- Basic Product model created
+
+## Step 1: Create Your Product Model (2 minutes)
+
+First, let's create a Product model if you don't have one:
+
+```bash
+php artisan make:model Product -m
+```
+
+Update the migration:
+
+```php
+// database/migrations/xxxx_create_products_table.php
+Schema::create('products', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->text('description')->nullable();
+    $table->decimal('price', 10, 2);
+    $table->string('status')->default('active');
+    $table->timestamps();
+});
+```
+
+Configure the model for custom fields:
+
+```php
+// app/Models/Product.php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
+use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
+
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+    
+    protected $fillable = [
+        'name',
+        'description', 
+        'price',
+        'status',
+    ];
+}
+```
+
+Run the migration:
+```bash
+php artisan migrate
+```
+
+## Step 2: Create Filament Resource (3 minutes)
+
+Generate a Filament resource for products:
+
+```bash
+php artisan make:filament-resource Product --generate
+```
+
+The Entity Management System will automatically discover your Product model! No additional configuration needed.
+
+Verify entity registration:
+```bash
+php artisan custom-fields:list-entities
+```
+
+You should see:
+```
+Registered Entities:
+- App\Models\Product (Product)
+```
+
+## Step 3: Add Your First Custom Fields (4 minutes)
+
+Navigate to your admin panel and go to **Custom Fields → Manage Fields**.
+
+### Create a Product Category Field
+
+<Steps>
+  <Step title="Select Entity">
+    Choose "Product" from the entity dropdown
+  </Step>
+  
+  <Step title="Add Field">
+    Click "New Custom Field" and fill in:
+    - **Name**: Product Category
+    - **Type**: Select
+    - **Options**: Electronics, Clothing, Books, Home & Garden
+    - **Required**: Yes
+  </Step>
+  
+  <Step title="Save">
+    Click "Create" to save the field
+  </Step>
+</Steps>
+
+### Add More Fields
+
+Quickly add these additional fields:
+
+1. **SKU Field**
+   - Name: SKU
+   - Type: Text
+   - Validation: Required, Unique
+   - Placeholder: "PROD-001"
+
+2. **Weight Field**
+   - Name: Weight (kg)
+   - Type: Number
+   - Validation: Required, Min: 0.01
+   - Step: 0.01
+
+3. **In Stock Toggle**
+   - Name: In Stock
+   - Type: Toggle
+   - Default: true
+
+## Step 4: See Custom Fields in Action (3 minutes)
+
+Go to **Products** in your admin panel and create a new product:
+
+1. Fill in the basic fields (Name, Description, Price)
+2. Notice the "Custom Fields" section automatically appears
+3. Fill in your custom fields:
+   - Select "Electronics" for category
+   - Enter "ELEC-001" for SKU
+   - Set weight to "0.5"
+   - Toggle "In Stock" on
+
+Save the product and see all your custom data stored!
+
+## Step 5: Add Conditional Fields (2 minutes)
+
+Let's add fields that only show for electronic products:
+
+### Create Warranty Field
+
+1. Go to **Custom Fields → Manage Fields**
+2. Add new field:
+   - **Name**: Warranty Period (months)
+   - **Type**: Number
+   - **Visibility**: Conditional
+
+3. Set visibility condition:
+   ```
+   Field: Product Category
+   Operator: Equals
+   Value: Electronics
+   ```
+
+### Create Battery Type Field
+
+Add another conditional field:
+- **Name**: Battery Type
+- **Type**: Select
+- **Options**: Lithium-ion, AA, AAA, Built-in, N/A
+- **Visibility**: Same condition as warranty
+
+Now when you edit a product and select "Electronics" as the category, these fields appear automatically!
+
+## Step 6: Quick Import Test (1 minute)
+
+### Generate Import Template
+
+1. Go to **Custom Fields → Import/Export**
+2. Select "Product" entity
+3. Click "Download Template"
+
+### Prepare Sample Data
+
+Edit the CSV template with sample products:
+
+```csv
+name,description,price,status,custom_field_sku,custom_field_weight_kg,custom_field_product_category
+"Laptop Pro",,"1299.99","active","ELEC-002","1.2","Electronics"
+"Winter Jacket",,"89.99","active","CLOTH-001","0.8","Clothing"
+"Coffee Table Book",,"34.99","active","BOOK-001","2.1","Books"
+```
+
+### Import Products
+
+1. Upload the CSV file
+2. Review field mapping
+3. Click "Import"
+
+Check your products list - all imported with custom fields! 🎉
+
+## What You've Accomplished
+
+In just 15 minutes, you've:
+- ✅ Set up a model with custom fields
+- ✅ Created dynamic form fields
+- ✅ Implemented conditional logic
+- ✅ Tested import functionality
+
+## Next Steps
+
+### Explore More Field Types
+
+<CardGroup cols={2}>
+  <Card title="Rich Editor" icon="pen-fancy">
+    Add formatted product descriptions
+  </Card>
+  
+  <Card title="File Upload" icon="file-arrow-up">
+    Attach product manuals or specs
+  </Card>
+  
+  <Card title="Tags Input" icon="tags">
+    Add searchable product tags
+  </Card>
+  
+  <Card title="Date Picker" icon="calendar">
+    Track launch or expiry dates
+  </Card>
+</CardGroup>
+
+### Advanced Features to Try
+
+1. **Field Sections**: Group related fields together
+   ```php
+   // Create sections like "Technical Specs", "Shipping Info"
+   ```
+
+2. **Complex Visibility**: Multiple conditions with AND/OR logic
+   ```php
+   // Show fields based on category AND price range
+   ```
+
+3. **Custom Validation**: Advanced validation rules
+   ```php
+   // SKU format validation, conditional requirements
+   ```
+
+4. **Export Data**: Export products with all custom fields
+   ```php
+   // Full CSV export with custom field data
+   ```
+
+## Pro Tips
+
+<Tip>
+  **Entity Discovery**: V2 automatically finds your models! Just implement `HasCustomFields` and use `UsesCustomFields` trait.
+</Tip>
+
+<Tip>
+  **Performance**: Custom fields are eager-loaded automatically, preventing N+1 queries.
+</Tip>
+
+<Tip>
+  **Validation**: Combine Laravel validation rules for powerful field constraints.
+</Tip>
+
+## Common Patterns
+
+### E-commerce Products
+```php
+// Common fields: SKU, Weight, Dimensions, Materials, Care Instructions
+```
+
+### Real Estate Listings
+```php
+// Common fields: Bedrooms, Bathrooms, Square Footage, Amenities
+```
+
+### CRM Contacts
+```php
+// Common fields: Company, Title, Social Links, Custom Tags
+```
+
+### Project Management
+```php
+// Common fields: Priority, Estimated Hours, Dependencies, Milestones
+```
+
+## Troubleshooting
+
+<Accordion title="Fields not showing in forms?">
+  1. Clear cache: `php artisan cache:clear`
+  2. Verify entity registration: `php artisan custom-fields:list-entities`
+  3. Check model implements `HasCustomFields` interface
+</Accordion>
+
+<Accordion title="Import not working?">
+  1. Ensure CSV headers match: `custom_field_` + field slug
+  2. Check date formats match your configuration
+  3. Verify required fields have values
+</Accordion>
+
+<Accordion title="Conditional fields not hiding/showing?">
+  1. Ensure parent field has a value
+  2. Check operator matches (equals, not_equals, contains)
+  3. Verify field slugs in conditions
+</Accordion>
+
+## Ready for More?
+
+You've successfully implemented Custom Fields V2! Here's where to go next:
+
+<CardGroup cols={2}>
+  <Card title="Field Types Reference" icon="shapes" href="/v2/field-types">
+    Explore all 32+ field types
+  </Card>
+  
+  <Card title="Entity Management" icon="sitemap" href="/v2/core-concepts/entity-management">
+    Deep dive into entity system
+  </Card>
+  
+  <Card title="Advanced Features" icon="gear" href="/v2/features">
+    Multi-tenancy, encryption, and more
+  </Card>
+  
+  <Card title="API Reference" icon="code" href="/v2/api-reference">
+    Programmatic field management
+  </Card>
+</CardGroup>
+
+## Summary
+
+Custom Fields V2 makes it incredibly easy to add dynamic fields to any Laravel model. With automatic entity discovery, 32+ field types, and powerful features like conditional visibility and import/export, you can build flexible, user-defined data structures in minutes.
+
+Happy building! 🚀

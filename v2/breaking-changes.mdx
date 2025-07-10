@@ -1,0 +1,361 @@
+---
+title: 'Breaking Changes'
+description: 'Complete reference of breaking changes from Custom Fields V1 to V2'
+icon: 'triangle-exclamation'
+version: 'V2-beta'
+---
+
+<Warning>
+  This document lists all breaking changes between Custom Fields V1 and V2. Review carefully before upgrading.
+</Warning>
+
+## Critical Requirements
+
+### PHP Version
+- **V1**: PHP 8.2+
+- **V2**: PHP 8.3+ (⚠️ Breaking)
+
+### Framework Dependencies
+- **Laravel**: 11.0+ required (was 10.x)
+- **Filament**: 4.0+ required (was 3.x)
+
+<Info>
+  These version requirements must be met before attempting to upgrade. See the [Upgrade Guide](/v2/upgrade-guide) for detailed steps.
+</Info>
+
+## Architecture Changes
+
+### Entity Management System
+
+**V1 Approach**: Direct model integration
+```php
+// V1: Models directly use the trait
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+}
+```
+
+**V2 Approach**: Entity-based architecture
+```php
+// V2: Models must be registered as entities
+// Automatic discovery (recommended)
+CustomFieldsPlugin::make()
+    ->entityDiscovery(true)
+    ->discoverEntitiesIn(['app/Models'])
+
+// Or manual registration
+CustomFields::registerEntity(Product::class, [
+    'label' => 'Product',
+    'plural_label' => 'Products',
+]);
+```
+
+### Configuration Structure
+
+**Location**: `config/custom-fields.php`
+
+<CodeGroup>
+```php title="V1 Configuration"
+return [
+    'tables' => [
+        'custom_fields' => 'custom_fields',
+        'custom_field_values' => 'custom_field_values',
+    ],
+    'features' => [
+        'sections' => true,
+        'import' => true,
+    ],
+];
+```
+
+```php title="V2 Configuration"
+return [
+    // New entity configuration section
+    'entities' => [
+        'auto_discover' => true,
+        'directories' => ['app/Models'],
+        'cache_lifetime' => 3600,
+    ],
+    
+    // Enhanced features
+    'features' => [
+        'sections' => true,
+        'import_export' => true, // Renamed
+        'conditional_visibility' => true,
+        'encryption' => true,
+        'multi_tenancy' => false,
+    ],
+    
+    // New import/export settings
+    'import_export' => [
+        'chunk_size' => 1000,
+        'timeout' => 300,
+    ],
+];
+```
+</CodeGroup>
+
+## API Changes
+
+### Field Creation
+
+<CodeGroup>
+```php title="V1 Field Creation"
+CustomField::create([
+    'name' => 'Company Size',
+    'type' => 'number',
+    'model_type' => Product::class,
+    'validation' => 'required|numeric|min:1',
+]);
+```
+
+```php title="V2 Field Creation"
+use Relaticle\CustomFields\Data\CustomFieldData;
+
+CustomField::create(
+    CustomFieldData::from([
+        'name' => 'Company Size',
+        'type' => 'number',
+        'entity_type' => Product::class, // Changed from model_type
+        'validation_rules' => [ // New structure
+            ['rule' => 'required'],
+            ['rule' => 'numeric'],
+            ['rule' => 'min', 'value' => 1],
+        ],
+    ])->toArray()
+);
+```
+</CodeGroup>
+
+### Validation Rules
+
+**V1**: String-based validation
+```php
+'validation' => 'required|email|max:255'
+```
+
+**V2**: Array-based validation with DTOs
+```php
+'validation_rules' => [
+    ['rule' => 'required'],
+    ['rule' => 'email'],
+    ['rule' => 'max', 'value' => 255]
+]
+```
+
+### Conditional Visibility
+
+<CodeGroup>
+```php title="V1 Visibility"
+'visible_when' => [
+    'field' => 'type',
+    'value' => 'product'
+]
+```
+
+```php title="V2 Visibility"
+'visibility_conditions' => [
+    'conditions' => [
+        [
+            'field' => 'type',
+            'operator' => 'equals', // New: explicit operators
+            'value' => 'product'
+        ]
+    ],
+    'logic' => 'AND' // New: logic operators
+]
+```
+</CodeGroup>
+
+### Resource Integration
+
+<CodeGroup>
+```php title="V1 Resource"
+use Relaticle\CustomFields\Forms\Components\CustomFieldsSection;
+
+public static function form(Form $form): Form
+{
+    return $form->schema([
+        CustomFieldsSection::make('Custom Fields')
+            ->relationship('customFieldValues')
+    ]);
+}
+```
+
+```php title="V2 Resource"
+use Relaticle\CustomFields\Facades\CustomFields;
+
+// With auto-discovery, no manual integration needed!
+
+// For manual control:
+public static function form(Form $form): Form
+{
+    return $form->schema([
+        CustomFields::make()
+            ->entity(static::getModel())
+            ->build()
+    ]);
+}
+```
+</CodeGroup>
+
+## Database Schema Changes
+
+### Table Renames
+- `model_type` → `entity_type` in custom_fields table
+- `model_id` → `entity_id` in custom_field_values table
+
+### New Columns
+- `custom_fields.visibility_conditions` (JSON)
+- `custom_fields.import_mapping` (JSON)
+- `custom_fields.export_config` (JSON)
+- `custom_field_values.metadata` (JSON)
+
+### Migration Required
+```bash
+php artisan custom-fields:migrate-v1-data
+```
+
+## Namespace Changes
+
+| V1 Namespace | V2 Namespace | Notes |
+|--------------|--------------|-------|
+| `Forms\Components\CustomFieldsSection` | `Builders\FormBuilder` | New builder pattern |
+| `Services\CustomFieldService` | `Services\EntityManager` | Renamed service |
+| N/A | `Data\*` | New DTO classes |
+
+## Method Changes
+
+### HasCustomFields Interface
+
+<CodeGroup>
+```php title="V1 Methods"
+interface HasCustomFields
+{
+    public function customFields();
+    public function customFieldValues();
+    public function getCustomFieldValue($fieldName);
+    public function setCustomFieldValue($fieldName, $value);
+}
+```
+
+```php title="V2 Methods"
+interface HasCustomFields
+{
+    public function customFields();
+    public function customFieldValues();
+    public function getCustomFieldValue($fieldName);
+    public function setCustomFieldValue($fieldName, $value);
+    
+    // New methods
+    public function getEntityConfiguration(): array;
+    public function scopeWithCustomFields($query);
+    public function exportCustomFields(): array;
+}
+```
+</CodeGroup>
+
+## Feature Changes
+
+### Import/Export
+- **V1**: Import only via CSV
+- **V2**: Full import/export with transformers
+
+### Field Types
+- **V1**: 18 field types
+- **V2**: 32+ field types (see [Field Types](/v2/field-types))
+
+### Multi-tenancy
+- **V1**: Basic tenant scoping
+- **V2**: Enhanced with middleware and context service
+
+## Removed Features
+
+### Deprecated Methods
+```php
+// V1 methods no longer available
+CustomField::forModel($model); // Use entity system
+CustomField::createPreset($name, $fields); // Use field templates
+```
+
+### Removed Configuration Options
+```php
+// No longer in config/custom-fields.php
+'cache_values' => true, // Now automatic
+'eager_load' => true, // Now optimized internally
+```
+
+## Plugin Configuration
+
+<CodeGroup>
+```php title="V1 Plugin"
+CustomFieldsPlugin::make()
+    ->models([Product::class, Customer::class])
+    ->navigationGroup('Settings')
+```
+
+```php title="V2 Plugin"
+CustomFieldsPlugin::make()
+    ->entityDiscovery(true)
+    ->discoverEntitiesIn(['app/Models'])
+    ->entityCacheLifetime(3600)
+    ->navigationGroup('Settings')
+```
+</CodeGroup>
+
+## Migration Checklist
+
+<Warning>
+  Follow this checklist to ensure all breaking changes are addressed.
+</Warning>
+
+- [ ] Update PHP to 8.3+
+- [ ] Update Filament to 4.0+
+- [ ] Update Laravel to 11.0+
+- [ ] Update configuration file structure
+- [ ] Convert validation rules to array format
+- [ ] Update conditional visibility syntax
+- [ ] Register entities (auto or manual)
+- [ ] Run database migrations
+- [ ] Update resource integrations
+- [ ] Test all custom field types
+- [ ] Verify import/export functionality
+
+## Backward Compatibility
+
+### What Stays the Same
+- Model trait and interface names
+- Basic field value storage
+- Core functionality concepts
+
+### What Requires Code Changes
+- Field creation via API
+- Validation rule definitions
+- Conditional visibility setup
+- Resource integration (unless using auto-discovery)
+- Programmatic field management
+
+## Quick Reference
+
+| Feature | V1 Syntax | V2 Syntax |
+|---------|-----------|-----------|
+| Model Type | `model_type` | `entity_type` |
+| Validation | String rules | Array of rule objects |
+| Visibility | Simple array | Conditions with operators |
+| Import | CSV only | Multiple formats |
+| Field Count | 18 types | 32+ types |
+| Discovery | Manual | Automatic option |
+
+## Getting Help
+
+If you encounter issues not covered here:
+
+1. Check the [Upgrade Guide](/v2/upgrade-guide) for step-by-step instructions
+2. Review [Common Migration Issues](/v2/upgrade-guide#common-migration-issues)
+3. Search [GitHub Issues](https://github.com/relaticle/custom-fields/issues)
+4. Ask in the [Community Forum](https://laracasts.com/discuss)
+
+<Info>
+  Remember: V2 is designed to be more powerful while reducing boilerplate code. Most breaking changes result in cleaner, more maintainable code.
+</Info>

@@ -1,7 +1,431 @@
 ---
 title: 'Upgrade Guide'
-description: 'Step-by-step guide for upgrading Custom Fields from v1 to v2'
+description: 'Step-by-step guide for upgrading Custom Fields from V1 to V2 with entity migration'
 icon: 'arrow-up'
 version: 'V2-beta'
 ---
 
+<Note>
+  This guide walks you through upgrading from Custom Fields V1 to V2. The upgrade process typically takes 2-4 hours depending on your project complexity.
+</Note>
+
+## Before You Begin
+
+<Warning>
+  Custom Fields V2 requires PHP 8.3+ and Filament 4.0+. These are breaking changes that must be addressed before upgrading.
+</Warning>
+
+### Pre-Upgrade Checklist
+
+<Steps>
+  <Step title="Backup Your Application">
+    Create complete backups of:
+    - Database (including custom_fields tables)
+    - Codebase
+    - Configuration files
+    - Any custom field type implementations
+  </Step>
+  
+  <Step title="Verify Requirements">
+    ```bash
+    # Check PHP version (must be 8.3+)
+    php -v
+    
+    # Check current package versions
+    composer show filament/filament
+    composer show relaticle/custom-fields
+    ```
+  </Step>
+  
+  <Step title="Review Breaking Changes">
+    Read the [Breaking Changes](/v2/breaking-changes) document to understand what will change.
+  </Step>
+  
+  <Step title="Test Environment">
+    Always test the upgrade process in a staging environment first.
+  </Step>
+</Steps>
+
+## Upgrade Process
+
+### Step 1: Update PHP and Dependencies
+
+<Tabs>
+  <Tab title="PHP Upgrade">
+    ```bash
+    # Update to PHP 8.3+
+    # Method varies by system - examples:
+    
+    # macOS with Homebrew
+    brew upgrade php@8.3
+    brew link php@8.3
+    
+    # Ubuntu/Debian
+    sudo apt update
+    sudo apt install php8.3
+    
+    # Verify
+    php -v
+    ```
+  </Tab>
+  
+  <Tab title="Filament Upgrade">
+    ```bash
+    # Update Filament to 4.0
+    composer require filament/filament:"^4.0" -W
+    
+    # Clear caches
+    php artisan filament:clear-cached-components
+    php artisan view:clear
+    ```
+  </Tab>
+</Tabs>
+
+### Step 2: Update Custom Fields Package
+
+```bash
+# Remove V1
+composer remove relaticle/custom-fields
+
+# Clear composer cache
+composer clear-cache
+
+# Install V2
+composer require relaticle/custom-fields:^2.0
+
+# Update autoload
+composer dump-autoload
+```
+
+### Step 3: Publish V2 Assets
+
+```bash
+# Publish new configuration
+php artisan vendor:publish --tag="custom-fields-config" --force
+
+# Publish new migrations
+php artisan vendor:publish --tag="custom-fields-migrations"
+
+# DO NOT run migrations yet!
+```
+
+### Step 4: Update Configuration
+
+#### Update Plugin Registration
+
+In your Panel Provider:
+
+```php
+// ABOUTME: Panel provider with V2 plugin configuration
+// ABOUTME: Shows entity discovery setup for automatic model detection
+
+use Relaticle\CustomFields\CustomFieldsPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugins([
+            // V1 configuration (remove this)
+            // CustomFieldsPlugin::make(),
+            
+            // V2 configuration (add this)
+            CustomFieldsPlugin::make()
+                ->entityDiscovery(true)
+                ->discoverEntitiesIn(['app/Models'])
+                ->entityCacheLifetime(3600)
+        ]);
+}
+```
+
+#### Configure Entity Discovery
+
+Edit `config/custom-fields.php`:
+
+```php
+return [
+    'entities' => [
+        'auto_discover' => true,
+        'directories' => ['app/Models'],
+        'base_model' => \Illuminate\Database\Eloquent\Model::class,
+        'cache_lifetime' => 3600,
+    ],
+    
+    // Preserve your existing feature toggles
+    'features' => [
+        'sections' => true,
+        'import_export' => true,
+        'conditional_visibility' => true,
+        'encryption' => true,
+        'multi_tenancy' => false, // Update based on your needs
+    ],
+];
+```
+
+### Step 5: Update Your Models
+
+No changes needed to models that already implement `HasCustomFields`:
+
+```php
+// This remains the same in V2
+use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
+use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
+
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+}
+```
+
+### Step 6: Migrate Database Schema
+
+<Warning>
+  The migration process will update your database schema. Ensure you have backups before proceeding.
+</Warning>
+
+```bash
+# Run the V2 migrations
+php artisan migrate
+
+# Run the data migration command
+php artisan custom-fields:migrate-v1-data
+```
+
+The migration command will:
+- Update table schemas for V2
+- Migrate conditional visibility data
+- Convert field configurations
+- Preserve all existing data
+
+### Step 7: Update Resource Integration
+
+#### V1 Resource Pattern
+```php
+// V1: Manual form integration
+public static function form(Form $form): Form
+{
+    return $form->schema([
+        // Your fields...
+        CustomFieldsSection::make('Custom Fields')
+            ->relationship('customFieldValues')
+    ]);
+}
+```
+
+#### V2 Resource Pattern
+```php
+// V2: Automatic integration via entity discovery
+// No manual resource changes needed if using auto-discovery!
+
+// For manual control, use:
+public static function form(Form $form): Form
+{
+    return $form->schema([
+        // Your fields...
+        CustomFields::make()
+            ->entity(static::getModel())
+            ->build()
+    ]);
+}
+```
+
+### Step 8: Update Programmatic Usage
+
+#### Field Creation
+```php
+// V1 approach
+CustomField::create([
+    'name' => 'Company Size',
+    'type' => 'number',
+    'model_type' => Product::class,
+]);
+
+// V2 approach
+use Relaticle\CustomFields\Data\CustomFieldData;
+
+CustomField::create(
+    CustomFieldData::from([
+        'name' => 'Company Size',
+        'type' => 'number',
+        'entity_type' => Product::class,
+        'validation_rules' => [
+            ['rule' => 'required'],
+            ['rule' => 'numeric'],
+            ['rule' => 'min', 'value' => 1],
+        ],
+    ])->toArray()
+);
+```
+
+#### Conditional Visibility
+```php
+// V1 simple conditions
+'visible_when' => [
+    'field' => 'type',
+    'value' => 'product'
+]
+
+// V2 advanced conditions
+'visibility_conditions' => [
+    'conditions' => [
+        [
+            'field' => 'type',
+            'operator' => 'equals',
+            'value' => 'product'
+        ]
+    ],
+    'logic' => 'AND'
+]
+```
+
+### Step 9: Clear Caches
+
+```bash
+# Clear all caches
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
+php artisan route:clear
+
+# Clear Filament caches
+php artisan filament:clear-cached-components
+```
+
+### Step 10: Verify Entity Registration
+
+```bash
+# List all registered entities
+php artisan custom-fields:list-entities
+
+# Debug entity discovery
+php artisan custom-fields:debug-discovery
+```
+
+## Common Migration Issues
+
+### Entity Not Found
+
+**Problem**: Models not appearing in admin panel
+
+**Solution**:
+```php
+// Manually register in AppServiceProvider
+use Relaticle\CustomFields\Facades\CustomFields;
+
+public function boot(): void
+{
+    CustomFields::registerEntity(Product::class, [
+        'label' => 'Product',
+        'plural_label' => 'Products',
+    ]);
+}
+```
+
+### Validation Errors
+
+**Problem**: Validation rules not working
+
+**Solution**: Convert to V2 format
+```php
+// V1 format
+'validation' => 'required|numeric|min:1'
+
+// V2 format
+'validation_rules' => [
+    ['rule' => 'required'],
+    ['rule' => 'numeric'],
+    ['rule' => 'min', 'value' => 1]
+]
+```
+
+### Import/Export Issues
+
+**Problem**: CSV imports failing
+
+**Solution**: Update import configuration
+```php
+// config/custom-fields.php
+'import_export' => [
+    'chunk_size' => 1000,
+    'timeout' => 300,
+    'temporary_directory' => storage_path('app/imports'),
+]
+```
+
+## Post-Upgrade Tasks
+
+### Testing Checklist
+
+- [ ] All models appear in admin panel
+- [ ] Custom fields can be created/edited
+- [ ] Field values save correctly
+- [ ] Conditional visibility works
+- [ ] Import/export functions properly
+- [ ] Multi-tenancy isolation (if used)
+- [ ] Field encryption (if used)
+
+### Performance Optimization
+
+```bash
+# Rebuild entity cache
+php artisan custom-fields:cache-entities
+
+# Optimize for production
+php artisan optimize
+php artisan filament:optimize
+```
+
+### Update Your Code
+
+1. **Remove V1 Workarounds**: Entity discovery eliminates most manual configuration
+2. **Use New Features**: Implement new field types and conditional logic
+3. **Update Tests**: Ensure tests use V2 APIs
+
+## Rollback Plan
+
+If you need to rollback to V1:
+
+```bash
+# Restore database backup
+mysql -u root -p database_name < backup.sql
+
+# Restore V1 package
+composer require relaticle/custom-fields:^1.0
+
+# Restore configuration
+git checkout config/custom-fields.php
+
+# Clear caches
+php artisan cache:clear
+```
+
+## Getting Help
+
+### Resources
+- [Breaking Changes Reference](/v2/breaking-changes)
+- [Entity Management Guide](/v2/core-concepts/entity-management)
+- [V2 API Documentation](/v2/api-reference)
+
+### Support Channels
+- GitHub Issues: [Report bugs or issues](https://github.com/relaticle/custom-fields/issues)
+- Community Forum: [Get help from the community](https://laracasts.com/discuss)
+- Commercial Support: Available for license holders
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore New Features" icon="sparkles" href="/v2/features">
+    Discover all the new capabilities in V2
+  </Card>
+  
+  <Card title="Entity Management" icon="sitemap" href="/v2/core-concepts/entity-management">
+    Master the new entity system
+  </Card>
+  
+  <Card title="Field Types" icon="shapes" href="/v2/field-types">
+    Explore 32+ available field types
+  </Card>
+  
+  <Card title="Performance Guide" icon="gauge" href="/v2/advanced/performance">
+    Optimize your V2 installation
+  </Card>
+</CardGroup>
