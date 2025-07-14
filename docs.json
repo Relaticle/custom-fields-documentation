@@ -1,0 +1,76 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Filament Custom Fields",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "versions": [
+      {
+        "version": "v1",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Essentials",
+            "pages": [
+              "essentials/configuration",
+              "essentials/authorization",
+              "essentials/preset-custom-fields",
+              "essentials/import-export",
+              "essentials/data-model"
+            ]
+          },
+          {
+            "group": "Help & Support",
+            "pages": [
+              "help-support/support",
+              "help-support/contributing"
+            ]
+          },
+          {
+            "group": "Legal & Acknowledgments",
+            "pages": [
+              "legal-acknowledgments/license",
+              "legal-acknowledgments/code-distribution"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/relaticle/custom-fields"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Live Demo",
+      "href": "https://relaticle.com"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/MinasyanManuk",
+      "github": "https://github.com/ManukMinasyan",
+      "linkedin": "https://www.linkedin.com/in/manukminasyan/"
+    }
+  }
+}
