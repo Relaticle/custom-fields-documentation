@@ -3,35 +3,15 @@ title: 'Quickstart'
 icon: 'rocket'
 ---
 
-This section will guide you through setting up and using the Custom Fields plugin in your Filament admin panel.
+This guide will have you adding custom fields to your Filament resources in minutes. 
 
-## Publish and Run Migrations
+<Note>
+Make sure you've completed the [Installation](/installation) steps first.
+</Note>
 
-Publish the migration files:
+## Step 1: Register the Plugin
 
-```bash
-php artisan vendor:publish --tag="custom-fields-migrations"
-```
-
-Run the migrations:
-
-```bash
-php artisan migrate
-```
-
-## Publish the Configuration File (Optional)
-
-If you wish to customize the configuration, publish the config file:
-
-```bash
-php artisan vendor:publish --tag="custom-fields-config"
-```
-
-This will create a `custom-fields.php` file in your `config` directory.
-
-## Integrating Custom Fields Plugin into panel
-
-To use Custom Fields, you need to register the plugin with your Filament panel.
+In your `AdminPanelProvider` or panel configuration, register the Custom Fields plugin:
 
 ```php
 use Relaticle\CustomFields\CustomFieldsPlugin;
@@ -47,20 +27,18 @@ public function panel(Panel $panel): Panel
 }
 ```
 
+## Step 2: Prepare Your Model
 
-## Setting Up the Model
+Your model needs to implement the `HasCustomFields` interface and use the `UsesCustomFields` trait.
 
-Your model needs to implement the `HasCustomFields` interface and use the `UsesCustomFields` trait to work with custom
-fields.
-
-In your model (e.g., `Company`), add the following:
+In your model (e.g., `Product`), add the following:
 
 ```php
 use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
 use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
 use Illuminate\Database\Eloquent\Model;
 
-class Company extends Model implements HasCustomFields
+class Product extends Model implements HasCustomFields
 {
     use UsesCustomFields;
 
@@ -68,22 +46,18 @@ class Company extends Model implements HasCustomFields
 }
 ```
 
-By following these steps, your model will be fully equipped to handle custom fields, and you will have successfully set
-up Custom Fields in your Filament application, enabling dynamic and flexible data management.
+## Step 3: Add Custom Fields to Forms
 
-## Adding Custom Fields to Forms
+To include custom fields in your resource forms, add the `CustomFieldsComponent` to your form schema.
 
-To include custom fields in your resource forms, you'll use the `CustomFieldsComponent`. This component dynamically adds
-all the custom fields associated with the resource.
-
-In your resource class (e.g., `CompanyResource`), modify the `form()` method:
+In your resource class (e.g., `ProductResource`), modify the `form()` method:
 
 ```php
 use Relaticle\CustomFields\Filament\Forms\Components\CustomFieldsComponent;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 
-class CompanyResource extends Resource
+class ProductResource extends Resource
 {
     public static function form(Form $form): Form
     {
@@ -92,12 +66,11 @@ class CompanyResource extends Resource
                 // Your existing form fields
                 Forms\Components\TextInput::make('name')
                     ->required(),
-                Forms\Components\TextInput::make('email')
-                    ->email(),
+                Forms\Components\TextInput::make('price')
+                    ->numeric(),
 
                 // Add the CustomFieldsComponent
-                CustomFieldsComponent::make()
-                    ->columns(1),
+                CustomFieldsComponent::make(),
             ]);
     }
 
@@ -105,18 +78,17 @@ class CompanyResource extends Resource
 }
 ```
 
-## Displaying Custom Fields in Table Views
+## Step 4: Display Custom Fields in Tables
 
-To display custom fields in your table views, you need to use the `InteractsWithCustomFields` trait in your
-resource's `ListRecords` page.
+To display custom fields in your table views, add the `InteractsWithCustomFields` trait to your resource's `ListRecords` page.
 
-In your list records class (e.g., `ListCompanies`), add the trait:
+In your list records class (e.g., `ListProducts`), add the trait:
 
 ```php
 use Relaticle\CustomFields\Filament\Tables\Concerns\InteractsWithCustomFields;
 use Filament\Resources\Pages\ListRecords;
 
-class ListCompanies extends ListRecords
+class ListProducts extends ListRecords
 {
     use InteractsWithCustomFields;
 
@@ -126,15 +98,16 @@ class ListCompanies extends ListRecords
 
 This trait automatically includes all custom fields in the table view for the resource.
 
-## Integrating into Info Lists
+## Step 5: Add Custom Fields to Info Lists
 
-In your resource's `ViewRecord` page or wherever you define the info list schema, include the `CustomFieldsInfolists` component:
+In your resource's `ViewRecord` page, include the `CustomFieldsInfolists` component:
 
 ```php
 use Relaticle\CustomFields\Filament\Infolists\CustomFieldsInfolists;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Infolists;
 
-class ViewCompany extends ViewRecord
+class ViewProduct extends ViewRecord
 {
     // ...
 
@@ -143,9 +116,9 @@ class ViewCompany extends ViewRecord
         return [
             // ... existing infolist components
             Infolists\Components\TextEntry::make('name')
-                ->label('Company Name'),
-            Infolists\Components\TextEntry::make('email')
-                ->label('Email Address'),
+                ->label('Product Name'),
+            Infolists\Components\TextEntry::make('price')
+                ->label('Price'),
     
             // Custom Fields
             CustomFieldsInfolists::make()
@@ -155,18 +128,18 @@ class ViewCompany extends ViewRecord
 }
 ```
 
-## Including Custom Fields in Exports
+## Step 6: Include Custom Fields in Exports (Optional)
 
-To include custom fields in your exports, you can leverage the `CustomFieldsExporter` component, which is designed to integrate seamlessly with Filament's exporting tools. Below is your `CompanyExporter` class, which shows how to implement this:
+To include custom fields in your exports, use the `CustomFieldsExporter` component:
 
 ```php
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Relaticle\CustomFields\Filament\Exports\CustomFieldsExporter;
 
-class CompanyExporter extends Exporter
+class ProductExporter extends Exporter
 {
-    protected static ?string $model = Comapny::class;
+    protected static ?string $model = Product::class;
 
     public static function getColumns(): array
     {
@@ -174,10 +147,26 @@ class CompanyExporter extends Exporter
             ExportColumn::make('id')
                 ->label('ID'),
             ExportColumn::make('name'),
-            ExportColumn::make('email'),
+            ExportColumn::make('price'),
 
             // Include custom fields
             ...CustomFieldsExporter::getColumns(self::getModel()),
         ];
     }
 }
+```
+
+## That's It!
+
+You now have custom fields integrated into your Filament resource! Your users can:
+
+- **Add custom fields** through the admin panel
+- **Fill out custom fields** in forms
+- **View custom fields** in tables and info lists
+- **Export custom fields** data
+
+## Next Steps
+
+- **[Configure the plugin](/essentials/configuration)** - Customize behavior and permissions
+- **[Set up authorization](/essentials/authorization)** - Control who can manage custom fields
+- **[Explore field types](/essentials/data-model)** - Learn about all 18 available field types
