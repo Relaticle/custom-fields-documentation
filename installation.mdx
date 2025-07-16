@@ -3,43 +3,87 @@ title: 'Installation'
 icon: 'download'
 ---
 
-**Custom Fields** is now open source and can be installed directly via Composer for all users.
+Get started with Custom Fields in just a few steps.
 
 ## Requirements
 
 - **PHP**: 8.2 or higher
-- **Laravel**: 10.0 or higher (via Filament)
+- **Laravel**: 10.0 or higher
 - **Filament**: 3.0 or higher
 
 ## Installation
 
-### 1. Install via Composer
+Choose your installation method based on your license type:
 
-```bash
-composer require relaticle/custom-fields
-```
+<Tabs>
+  <Tab title="Open Source (AGPL-3.0)">
+    
+    ### For open source projects
 
-### 2. Install Custom Fields
+    Install directly from Packagist:
 
-```bash
-php artisan custom-fields:install
-```
+    ```bash
+    composer require relaticle/custom-fields
+    ```
 
-That's it! Custom Fields is now installed and ready to use. Continue to the [Quickstart Guide](/quickstart) to add your first custom fields.
+    Then run the installer:
 
-## Commercial License (Closed-Source Projects)
+    ```bash
+    php artisan custom-fields:install
+    ```
 
-If you're using Custom Fields in a closed-source commercial project, you need to purchase and activate a commercial license.
+    <Warning>
+    **Important**: By using this method, your entire application must be open source under AGPL-3.0. This includes SaaS applications.
+    </Warning>
 
-After purchasing, add your license key to your `.env` file:
+  </Tab>
+  <Tab title="Commercial License">
+    
+    ### For commercial/private projects
 
-```env
-CUSTOM_FIELDS_LICENSE_KEY=your-license-key-here
-```
+    <Steps>
+      <Step title="Purchase a license">
+        [Choose a commercial license](/legal-acknowledgments/license#commercial-license-pricing) starting at $39/year
+      </Step>
+      
+      <Step title="Add the private repository">
+        Add our private Composer repository to your `composer.json`:
+        
+        ```json
+        {
+            "repositories": [
+                {
+                    "type": "composer",
+                    "url": "https://satis.relaticle.com"
+                }
+            ]
+        }
+        ```
+      </Step>
+      
+      <Step title="Install the package">
+        ```bash
+        composer require relaticle/custom-fields
+        ```
+        
+        When prompted for authentication:
+        - **Username**: Your email (used for purchase)
+        - **Password**: Your license key
+      </Step>
+      
+      <Step title="Run the installer">
+        ```bash
+        php artisan custom-fields:install
+        ```
+      </Step>
+    </Steps>
 
-<Note>
-The package will work without a license key, but commercial use without a valid license violates the terms of use. See our [licensing options](/legal-acknowledgments/license) for more details.
-</Note>
+    <Note>
+    Your license key will be saved in Composer's auth file for future updates.
+    </Note>
+
+  </Tab>
+</Tabs>
 
 ## Optional Configuration
 
@@ -60,7 +104,3 @@ php artisan vendor:publish --tag="custom-fields-translations"
 ```bash
 php artisan vendor:publish --tag="custom-fields-views"
 ```
-
-## Next Steps
-
-Ready to start using Custom Fields? Check out our [Quickstart Guide](/quickstart) to add your first custom fields in minutes!
