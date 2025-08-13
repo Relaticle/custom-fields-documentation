@@ -23,12 +23,6 @@
             ]
           },
           {
-            "group": "Core Concepts",
-            "pages": [
-              "shared/concepts"
-            ]
-          },
-          {
             "group": "Essentials",
             "pages": [
               "v2/essentials/configuration",
@@ -63,12 +57,6 @@
               "v1/introduction",
               "v1/installation",
               "v1/quickstart"
-            ]
-          },
-          {
-            "group": "Core Concepts",
-            "pages": [
-              "shared/concepts"
             ]
           },
           {

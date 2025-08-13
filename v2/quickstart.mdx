@@ -4,7 +4,7 @@ description: 'Get Custom Fields v2 working in your Filament project in under 5 m
 icon: 'rocket'
 ---
 
-This guide will have you adding custom fields to your Filament resources in minutes using the new v2 API.
+Get Custom Fields v2 integrated into your Filament resource in just 5 simple steps.
 
 <Note>
 Make sure you've completed the [Installation](/v2/installation) steps first.
@@ -12,16 +12,14 @@ Make sure you've completed the [Installation](/v2/installation) steps first.
 
 ## Step 1: Register the Plugin
 
-In your `AdminPanelProvider` or panel configuration, register the Custom Fields plugin:
+Add the Custom Fields plugin to your panel:
 
 ```php
 use Relaticle\CustomFields\CustomFieldsPlugin;
-use Filament\Panel;
 
 public function panel(Panel $panel): Panel
 {
     return $panel
-        // ... other panel configurations
         ->plugins([
             CustomFieldsPlugin::make(),
         ]);
@@ -30,11 +28,9 @@ public function panel(Panel $panel): Panel
 
 ## Step 2: Prepare Your Model
 
-Your model needs to implement the `HasCustomFields` interface and use the `UsesCustomFields` trait.
+Implement the interface and use the trait:
 
 ```php
-namespace App\Models\Shop;
-
 use Illuminate\Database\Eloquent\Model;
 use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
 use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
@@ -42,66 +38,49 @@ use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
 class Customer extends Model implements HasCustomFields
 {
     use UsesCustomFields;
-
-    // ... your existing model code
 }
 ```
 
-## Step 3: Add Custom Fields to Forms (v2 Syntax)
+## Step 3: Add to Your Form
 
-Custom Fields v2 introduces a fluent builder pattern for forms. Add custom fields to your resource forms using the new API:
+Add custom fields to your resource form:
 
 ```php
 use Relaticle\CustomFields\Facades\CustomFields;
-use Filament\Schemas\Schema;
-use Filament\Forms;
 
-class CustomerResource extends Resource
+public static function form(Schema $schema): Schema
 {
-    public static function form(Schema $schema): Schema
-    {
-        return $schema
-            ->components([
-                // Your existing form fields
-                Forms\Components\TextInput::make('name')
-                    ->required(),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->required(),
+    return $schema
+        ->components([
+            // Your existing fields...
+            Forms\Components\TextInput::make('name'),
+            Forms\Components\TextInput::make('email'),
 
-                // Add Custom Fields using v2 builder pattern
-                CustomFields::form()
-                    ->forModel($schema->getRecord())
-                    ->build()
-                    ->columnSpanFull()
-            ]);
-    }
+            // Add Custom Fields
+            CustomFields::form()
+                ->forModel($schema->getRecord())
+                ->build()
+                ->columnSpanFull()
+        ]);
 }
 ```
 
-<Info>
-The v2 API uses `CustomFields::form()->forModel()->build()` instead of the direct component approach, providing better type safety and IDE support.
-</Info>
+## Step 4: Add to Your Table
 
-## Step 4: Display Custom Fields in Tables (v2 Syntax)
-
-Add custom field columns to your table using the new spread operator syntax:
+Display custom fields in your table:
 
 ```php
 use Relaticle\CustomFields\Facades\CustomFields;
-use Filament\Tables\Table;
-use Filament\Tables;
 
 public static function table(Table $table): Table
 {
     return $table
         ->columns([
-            Tables\Columns\TextColumn::make('name')
-                ->searchable(),
-            Tables\Columns\TextColumn::make('email')
-                ->searchable(),
+            // Your existing columns...
+            Tables\Columns\TextColumn::make('name'),
+            Tables\Columns\TextColumn::make('email'),
             
-            // Spread custom field columns
+            // Add custom field columns
             ...CustomFields::table()
                 ->forModel($table->getModel())
                 ->columns(),
@@ -115,27 +94,18 @@ public static function table(Table $table): Table
 }
 ```
 
-## Step 5: Add Custom Fields to Info Lists (v2)
+## Step 5: Add to Info Lists (Optional)
 
-For view pages, include custom fields in your infolist:
+For view pages, include custom fields:
 
 ```php
-use Relaticle\CustomFields\Facades\CustomFields;
-use Filament\Schemas\Schema;
-use Filament\Infolists;
-
 public static function infolist(Schema $schema): Schema
 {
     return $schema
         ->components([
-            Infolists\Components\Section::make()
-                ->schema([
-                    Infolists\Components\TextEntry::make('name'),
-                    Infolists\Components\TextEntry::make('email'),
-                ])
-                ->columns(2),
-
-            // Custom Fields section
+            // Your existing components...
+            
+            // Add Custom Fields
             CustomFields::infolist()
                 ->forModel($schema->getRecord())
                 ->build(),
@@ -143,88 +113,27 @@ public static function infolist(Schema $schema): Schema
 }
 ```
 
-## Step 6: Custom Field Sections (New in v2)
+## That's It! 🎉
 
-Version 2 introduces Custom Field Sections for better organization:
-
-```php
-// Custom fields are automatically grouped into sections
-// defined in the database migration
-CustomFields::form()
-    ->forModel($schema->getRecord())
-    ->withSections() // Enable section grouping
-    ->build()
-```
-
-## Working with Custom Field Values
-
-v2 provides improved methods for accessing custom field values:
-
-```php
-// Get a custom field value
-$customer->customField('field_code');
-
-// Set a custom field value
-$customer->setCustomField('field_code', 'value');
-
-// Get all custom fields
-$customer->customFields();
-
-// Check if a custom field exists
-$customer->hasCustomField('field_code');
-```
-
-## Import/Export Support (v2)
-
-v2 includes built-in import/export support:
-
-```php
-use App\Filament\Imports\Shop\CustomerImporter;
-
-class CustomerImporter extends Importer
-{
-    protected static ?string $model = Customer::class;
-
-    public static function getColumns(): array
-    {
-        return [
-            ImportColumn::make('name')
-                ->requiredMapping()
-                ->rules(['required']),
-            ImportColumn::make('email')
-                ->requiredMapping()
-                ->rules(['required', 'email']),
-            
-            // Auto-include custom fields
-            ...CustomFields::import()
-                ->forModel(static::getModel())
-                ->columns(),
-        ];
-    }
-}
-```
-
-## Performance Optimizations in v2
-
-Version 2 includes significant performance improvements:
-
-- **Eager loading**: Custom fields are automatically eager-loaded
-- **Caching**: Field definitions are cached for better performance
-- **Optimized queries**: Reduced N+1 query problems
-- **Lazy loading**: Fields load only when needed
-
-## That's It!
-
-You now have Custom Fields v2 integrated into your Filament resource! The new version provides:
-
-- ✅ **Cleaner API** with fluent builder pattern
-- ✅ **Better performance** with optimized queries
-- ✅ **TypeScript support** for better IDE integration
-- ✅ **Custom Field Sections** for organization
-- ✅ **Built-in import/export** support
+Your resource now has dynamic custom fields! Users can:
+- Add new fields through the admin panel
+- Fill out custom fields in forms
+- View and filter by custom fields in tables
+- See custom field values in detail views
 
 ## Next Steps
 
-- **[Explore v2 Features](/v2/essentials/configuration)** - Learn about new capabilities
-- **[Migration Guide](/v2/upgrade)** - Upgrade from v1 to v2
-- **[Advanced Usage](/v2/essentials/data-model)** - Deep dive into v2 features
+<CardGroup cols={2}>
+  <Card title="Advanced Features" icon="code" href="/v2/essentials/advanced-usage">
+    Import/export, sections, and performance optimization
+  </Card>
+  <Card title="Field Management" icon="list-check" href="/shared/concepts">
+    Learn about field types and value handling
+  </Card>
+  <Card title="Configuration" icon="gear" href="/v2/essentials/configuration">
+    Customize behavior and permissions
+  </Card>
+  <Card title="Upgrade from v1" icon="arrow-up" href="/v2/upgrade">
+    Migration guide for v1 users
+  </Card>
+</CardGroup>
