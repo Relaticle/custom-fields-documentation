@@ -1,0 +1,87 @@
+---
+title: 'Upgrade from v1 to v2'
+description: 'Learn how to upgrade your Custom Fields from version 1 to version 2'
+icon: 'arrow-up-right-from-square'
+---
+
+This guide provides step-by-step instructions to upgrade the **Custom Fields FilamentPHP Plugin** from version **1.x** to version **2.0**. Version 2 introduces significant improvements in architecture, performance, and developer experience.
+
+## Introduction
+
+Version 1.0 introduces new features and optimizations that require updates to your application's database schema and existing data. To assist with the upgrade, we offer an Artisan command that automates many of the necessary steps.
+
+## Automated Upgrade Tool
+
+After [installing Custom Fields version 1.*)](/upgrade#2-update-composer-dependencies), to expedite the upgrade process, use the provided Artisan command:
+
+```shell
+php artisan custom-fields:upgrade
+```
+
+This command will:
+
+- Update the database schema to match version 1.* requirements.
+- Migrate existing data to comply with the new structure.
+
+> **Note:** While this command handles many tasks, it may not cover all custom scenarios in your application. Please proceed with the detailed steps below to complete the upgrade fully.
+
+## Detailed Upgrade Steps
+
+### 1. Backup Your Application
+
+**Before you start**, ensure you have a complete backup of your:
+
+- **Database:** Use your database management tools to export all data.
+- **Application Files:** Copy all files in your application directory to a safe location.
+
+This precaution allows you to restore your application if anything goes wrong during the upgrade.
+
+### 2. Update Composer Dependencies
+
+Run the following composer command to upgrade your application's Custom Fields dependency from version 0.9 to 1.0:
+
+```shell
+composer require relaticle/custom-fields "^1.0"
+```
+
+### 3. Review Configuration Files
+
+The configuration file `config/custom-fields.php` may have changed. Compare your version with the new one:
+
+- Check for new configuration options and add them as needed.
+- Remove any deprecated settings.
+- Ensure that all settings align with your application's needs.
+
+### 4. Verify Database Changes
+
+After running the command, confirm that the database changes are applied:
+
+- **`custom_field_sections` Table:** Verify that this new table exists.
+- **`custom_fields` Table:**
+  - Ensure new columns `custom_field_section_id` and `width` are added.
+  - Confirm that the `deleted_at` column has been removed.
+- **Other Tables:** Check that `deleted_at` columns are removed from `custom_field_options` and `custom_field_values` tables.
+
+### 5. Review Data Migration
+
+Ensure that your existing data has been correctly migrated:
+
+- Each `entity_type` should have a new default section in `custom_field_sections`.
+- Existing custom fields should reference this new section via `custom_field_section_id`.
+- The `width` of custom fields should default to `100%`.
+
+### 6. Test Your Application
+
+Thoroughly test all aspects of your application related to custom fields:
+
+- Create, update, and delete operations of custom fields.
+- Display of custom fields in forms and views.
+- Any custom logic or functionality that interacts with custom fields.
+
+### 7. Address Any Issues
+
+If you encounter problems:
+
+- **Check Logs:** Look for errors in your application's logs.
+- **Roll Back if Necessary:** Use your backups to restore the previous state.
+- **Seek Support:** Consult the plugin's documentation or community forums.

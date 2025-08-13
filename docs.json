@@ -11,38 +11,88 @@
   "navigation": {
     "versions": [
       {
-        "version": "v1",
+        "version": "v2",
         "groups": [
           {
             "group": "Get Started",
             "pages": [
-              "introduction",
-              "installation",
-              "quickstart"
+              "v2/introduction",
+              "v2/installation",
+              "v2/quickstart",
+              "v2/upgrade"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "shared/concepts"
             ]
           },
           {
             "group": "Essentials",
             "pages": [
-              "essentials/configuration",
-              "essentials/authorization",
-              "essentials/preset-custom-fields",
-              "essentials/import-export",
-              "essentials/data-model"
+              "v2/essentials/configuration",
+              "v2/essentials/authorization",
+              "v2/essentials/preset-custom-fields",
+              "v2/essentials/import-export",
+              "v2/essentials/data-model"
             ]
           },
           {
             "group": "Help & Support",
             "pages": [
-              "help-support/support",
-              "help-support/contributing"
+              "shared/support",
+              "shared/contributing"
             ]
           },
           {
             "group": "Legal & Acknowledgments",
             "pages": [
-              "legal-acknowledgments/license",
-              "legal-acknowledgments/code-distribution"
+              "shared/license",
+              "shared/code-distribution"
+            ]
+          }
+        ]
+      },
+      {
+        "version": "v1",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "v1/introduction",
+              "v1/installation",
+              "v1/quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "shared/concepts"
+            ]
+          },
+          {
+            "group": "Essentials",
+            "pages": [
+              "v1/essentials/configuration",
+              "v1/essentials/authorization",
+              "v1/essentials/preset-custom-fields",
+              "v1/essentials/import-export",
+              "v1/essentials/data-model"
+            ]
+          },
+          {
+            "group": "Help & Support",
+            "pages": [
+              "shared/support",
+              "shared/contributing"
+            ]
+          },
+          {
+            "group": "Legal & Acknowledgments",
+            "pages": [
+              "shared/license",
+              "shared/code-distribution"
             ]
           }
         ]

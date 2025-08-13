@@ -1,0 +1,153 @@
+---
+title: 'Core Concepts'
+description: 'Understand the fundamental concepts behind Custom Fields'
+icon: 'lightbulb'
+---
+
+## Overview
+
+Custom Fields allows you to add dynamic fields to your Filament resources without modifying your database schema. This document explains the core concepts that apply to all versions.
+
+## Key Concepts
+
+### Custom Field
+A dynamic field that can be added to any resource without database migrations. Each field has:
+- **Name**: Unique identifier for the field
+- **Type**: Data type (text, number, date, etc.)
+- **Validation**: Rules for data integrity
+- **Display Options**: How the field appears in forms and tables
+
+### Field Types
+Common field types supported across versions:
+- **Text**: Single-line text input
+- **Textarea**: Multi-line text input
+- **Number**: Numeric values
+- **Date**: Date picker
+- **DateTime**: Date and time picker
+- **Select**: Dropdown selection
+- **Checkbox**: Boolean values
+- **Radio**: Single choice from options
+- **File**: File uploads
+
+### Entity Types
+Resources that can have custom fields attached. Examples:
+- Products
+- Customers
+- Orders
+- Any Eloquent model
+
+### Field Groups/Sections
+Organize related fields together for better UX. Fields can be grouped by:
+- Purpose (e.g., "Shipping Information")
+- Department (e.g., "Marketing Fields")
+- Visibility (e.g., "Internal Only")
+
+## Architecture
+
+### Storage Strategy
+Custom field values are stored in a separate table, maintaining your original schema integrity:
+
+```sql
+custom_field_values
+- id
+- entity_type (e.g., 'App\Models\Product')
+- entity_id (e.g., 123)
+- custom_field_id
+- value
+- created_at
+- updated_at
+```
+
+### Performance Optimization
+- **Eager Loading**: Prevent N+1 queries
+- **Caching**: Field definitions are cached
+- **Indexing**: Proper database indexes for fast retrieval
+
+## Best Practices
+
+### Naming Conventions
+- Use descriptive, unique names
+- Follow snake_case convention
+- Prefix with context when needed (e.g., `shipping_special_instructions`)
+
+### Validation Rules
+- Always define appropriate validation
+- Consider required vs optional carefully
+- Use appropriate max lengths for text fields
+
+### Security Considerations
+- Validate and sanitize all input
+- Use proper authorization checks
+- Be cautious with file upload fields
+
+## Integration Points
+
+### Model Integration
+```php
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+}
+```
+
+### Resource Integration
+```php
+public function form(Form $form): Form
+{
+    return $form->schema([
+        // Your regular fields...
+        CustomFieldsComponent::make(),
+    ]);
+}
+```
+
+### Accessing Values
+```php
+// Get a custom field value
+$product->customField('field_name');
+
+// Set a custom field value
+$product->setCustomField('field_name', 'value');
+
+// Get all custom fields
+$product->customFields();
+```
+
+## Data Migration
+
+### Import/Export
+Custom fields support standard import/export workflows:
+- CSV import with custom field columns
+- JSON export including all custom fields
+- Bulk operations support
+
+### Backup Strategy
+Regular backups should include:
+- `custom_fields` table (field definitions)
+- `custom_field_values` table (actual data)
+- `custom_field_options` table (for select/radio fields)
+
+## Troubleshooting
+
+### Common Issues
+
+**Fields not appearing**
+- Clear application cache
+- Verify field permissions
+- Check entity type configuration
+
+**Validation errors**
+- Review validation rules
+- Check data types match
+- Verify required fields have values
+
+**Performance issues**
+- Enable caching
+- Use eager loading
+- Index frequently queried fields
+
+## Further Reading
+
+- [Configuration Guide](/essentials/configuration)
+- [Authorization & Permissions](/essentials/authorization)
+- [Import/Export Guide](/essentials/import-export)
