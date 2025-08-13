@@ -17,12 +17,7 @@ composer require relaticle/custom-fields:"^2.0" -W
 php artisan custom-fields:upgrade
 ```
 
-The upgrade command will:
-- Check your current version and compatibility
-- Verify database schema requirements
-- Scan for deprecated code patterns
-- Add new database columns if needed
-- Clear all caches
+This command handles all necessary migrations and cache clearing automatically.
 
 ## Manual Upgrade Steps
 
@@ -46,39 +41,10 @@ composer update relaticle/custom-fields
 
 ### 2. Database Changes
 
-Custom Fields v2 adds one new column to support enhanced features:
+Custom Fields v2 adds one new column:
+- `settings` JSON column in `custom_field_options` table
 
-- `settings` JSON column in `custom_field_options` table (for option-specific configuration)
-
-Note: The `width` column in `custom_fields` table already exists from v1.
-
-The upgrade command will add this automatically, or you can create a migration:
-
-```php
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up()
-    {
-        // Add settings to custom_field_options
-        if (!Schema::hasColumn('custom_field_options', 'settings')) {
-            Schema::table('custom_field_options', function (Blueprint $table) {
-                $table->json('settings')->nullable()->after('sort_order');
-            });
-        }
-    }
-    
-    public function down()
-    {
-        Schema::table('custom_field_options', function (Blueprint $table) {
-            $table->dropColumn('settings');
-        });
-    }
-};
-```
+The upgrade command handles this automatically. If you need to create the migration manually, add a `settings` JSON column to the `custom_field_options` table.
 
 ### 3. Update Your Code
 
@@ -86,188 +52,166 @@ The main change in v2 is the move from component-based integration to a fluent b
 
 #### Filament Resources - Forms
 
-<CodeGroup>
+<Tabs>
+  <Tab title="v1">
+    ```php
+    // Old v1 syntax
+    use Relaticle\CustomFields\Filament\Forms\Components\CustomFieldsComponent;
+    use Filament\Forms\Form;
 
-```php v1
-// Old v1 syntax
-use Relaticle\CustomFields\Filament\Forms\Components\CustomFieldsComponent;
-use Filament\Forms\Form;
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                // Your fields
+                TextInput::make('name'),
+                TextInput::make('price'),
+                
+                // Custom fields component
+                CustomFieldsComponent::make(),
+            ]);
+    }
+    ```
+  </Tab>
+  <Tab title="v2">
+    ```php
+    // New v2 syntax
+    use Relaticle\CustomFields\Facades\CustomFields;
+    use Filament\Forms\Form;
 
-public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
-            // Your fields
-            TextInput::make('name'),
-            TextInput::make('price'),
-            
-            // Custom fields component
-            CustomFieldsComponent::make(),
-        ]);
-}
-```
-
-```php v2
-// New v2 syntax
-use Relaticle\CustomFields\Facades\CustomFields;
-use Filament\Forms\Form;
-
-public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
-            // Your fields
-            TextInput::make('name'),
-            TextInput::make('price'),
-            
-            // Custom fields using builder
-            ...CustomFields::form()
-                ->forResource(static::class)
-                ->build(),
-        ]);
-}
-```
-
-</CodeGroup>
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                // Your fields
+                TextInput::make('name'),
+                TextInput::make('price'),
+                
+                // Custom fields using builder
+                CustomFields::form()
+                    ->forModel($form->getRecord())
+                    ->build(),
+            ]);
+    }
+    ```
+  </Tab>
+</Tabs>
 
 #### Filament Resources - Tables
 
-<CodeGroup>
+<Tabs>
+  <Tab title="v1">
+    ```php
+    // Old v1 syntax - Using trait on ListRecords page
+    use Relaticle\CustomFields\Concerns\InteractsWithCustomFields;
+    use Filament\Resources\Pages\ListRecords;
 
-```php v1
-// Old v1 syntax - Using trait on ListRecords page
-use Relaticle\CustomFields\Filament\Tables\Concerns\InteractsWithCustomFields;
-use Filament\Resources\Pages\ListRecords;
+    class ListProducts extends ListRecords
+    {
+        use InteractsWithCustomFields;
+        
+        // Custom fields are automatically added
+    }
+    ```
+  </Tab>
+  <Tab title="v2">
+    ```php
+    // New v2 syntax - Direct integration in Resource
+    use Relaticle\CustomFields\Facades\CustomFields;
+    use Filament\Tables\Table;
 
-class ListProducts extends ListRecords
-{
-    use InteractsWithCustomFields;
-    
-    // Custom fields are automatically added
-}
-```
-
-```php v2
-// New v2 syntax - Direct integration in Resource
-use Relaticle\CustomFields\Facades\CustomFields;
-use Filament\Tables\Table;
-
-public static function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            // Your columns
-            TextColumn::make('name'),
-            TextColumn::make('price'),
-            
-            // Custom field columns
-            ...CustomFields::table()
-                ->forResource(static::class)
-                ->build(),
-        ]);
-}
-```
-
-</CodeGroup>
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                // Your columns
+                TextColumn::make('name'),
+                TextColumn::make('price'),
+                
+                // Custom field columns (spread operator required)
+                ...CustomFields::table()
+                    ->forModel($table->getModel())
+                    ->columns(),
+            ])
+            ->filters([
+                // Custom field filters (optional, spread operator required)
+                ...CustomFields::table()
+                    ->forModel($table->getModel())
+                    ->filters(),
+            ]);
+    }
+    ```
+  </Tab>
+</Tabs>
 
 #### Filament Resources - Infolists
 
-<CodeGroup>
+<Tabs>
+  <Tab title="v1">
+    ```php
+    // Old v1 syntax - Using CustomFieldsInfolists component
+    use Relaticle\CustomFields\Filament\Infolists\CustomFieldsInfolists;
+    use Filament\Infolists\Infolist;
 
-```php v1
-// Old v1 syntax
-// Infolists were not directly supported in v1
-// Custom implementation was required
-```
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                // Your entries
+                TextEntry::make('name'),
+                TextEntry::make('price'),
+                
+                // Custom fields component
+                CustomFieldsInfolists::make()
+                    ->columnSpanFull(),
+            ]);
+    }
+    ```
+  </Tab>
+  <Tab title="v2">
+    ```php
+    // New v2 syntax - Using builder API
+    use Relaticle\CustomFields\Facades\CustomFields;
+    use Filament\Infolists\Infolist;
 
-```php v2
-// New v2 syntax - Native infolist support
-use Relaticle\CustomFields\Facades\CustomFields;
-use Filament\Infolists\Infolist;
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                // Your entries
+                TextEntry::make('name'),
+                TextEntry::make('price'),
+                
+                // Custom field entries using builder
+                CustomFields::infolist()
+                    ->forModel($infolist->getRecord())
+                    ->build(),
+                    
+                // Or get raw components with values()
+                ...CustomFields::infolist()
+                    ->forModel($infolist->getRecord())
+                    ->values(),
+            ]);
+    }
+    ```
+  </Tab>
+</Tabs>
 
-public static function infolist(Infolist $infolist): Infolist
-{
-    return $infolist
-        ->schema([
-            // Your entries
-            TextEntry::make('name'),
-            TextEntry::make('price'),
-            
-            // Custom field entries
-            ...CustomFields::infolist()
-                ->forResource(static::class)
-                ->build(),
-        ]);
-}
-```
+### 4. Final Steps
 
-</CodeGroup>
+After updating your code:
 
-#### Model Integration
+1. Remove deprecated components:
+   - `CustomFieldsComponent` from forms
+   - `CustomFieldsInfolists` from infolists
 
-The model integration remains largely the same:
-
-<CodeGroup>
-
-```php v1
-// v1 Model
-use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
-use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
-
-class Product extends Model implements HasCustomFields
-{
-    use UsesCustomFields;
-}
-```
-
-```php v2
-// v2 Model - Same as v1
-use Relaticle\CustomFields\Models\Contracts\HasCustomFields;
-use Relaticle\CustomFields\Models\Concerns\UsesCustomFields;
-
-class Product extends Model implements HasCustomFields
-{
-    use UsesCustomFields;
-}
-```
-
-</CodeGroup>
-
-#### Plugin Registration
-
-The plugin registration remains the same:
-
-```php
-use Relaticle\CustomFields\CustomFieldsPlugin;
-use Filament\Panel;
-
-public function panel(Panel $panel): Panel
-{
-    return $panel
-        ->plugins([
-            CustomFieldsPlugin::make(),
-        ]);
-}
-```
-
-### 4. Remove Deprecated Code
-
-After upgrading, remove these deprecated items from your codebase:
-
-- Remove `InteractsWithCustomFields` trait from ListRecords pages
-- Remove `CustomFieldsComponent` from forms (replaced by builder)
-- Remove any custom table column implementations for custom fields
-
-### 5. Clear Caches
-
-After upgrading, clear all caches:
-
-```bash
-php artisan cache:clear
-php artisan config:clear
-php artisan view:clear
-php artisan filament:cache-components
-```
+2. Clear all caches:
+   ```bash
+   php artisan cache:clear
+   php artisan config:clear
+   php artisan view:clear
+   php artisan filament:cache-components
+   ```
 
 ## New Features in v2
 
@@ -276,150 +220,111 @@ php artisan filament:cache-components
 The new builder API provides more control and flexibility:
 
 ```php
+// Forms - returns a single component
 CustomFields::form()
-    ->forModel(User::class)
-    ->section('profile') // Filter by specific section
-    ->columns(2) // Control layout
+    ->forModel($record)
+    ->except(['field_code']) // Exclude specific fields
+    ->only(['field_code']) // Include only specific fields
     ->build()
-```
 
-### Import/Export Support
-
-v2 adds native support for imports and exports:
-
-```php
-// In your importer
-public function resolveRecord(): ?Model
-{
-    return CustomFields::importer()
-        ->forResource(static::class)
-        ->build($this->data);
-}
-
-// In your exporter
-public function getColumns(): array
-{
-    return [
-        // Your columns
-        ...CustomFields::exporter()
-            ->forResource(static::class)
-            ->build(),
-    ];
-}
-```
-
-### Custom Field Types
-
-v2 introduces an extensible field type system:
-
-```php
-use Relaticle\CustomFields\Contracts\FieldTypeDefinitionInterface;
-
-class StarRatingFieldType implements FieldTypeDefinitionInterface
-{
-    public function getKey(): string
-    {
-        return 'star-rating';
-    }
+// Tables - returns collections
+CustomFields::table()
+    ->forModel(Product::class)
+    ->columns() // Returns column collection
     
-    // ... implement other methods
-}
+// Filters
+CustomFields::table()
+    ->forModel(Product::class)
+    ->filters() // Returns filter collection
 
-// Register in Panel Provider
-CustomFieldsPlugin::make()->registerFieldTypes([
-    StarRatingFieldType::class,
-])
-```
-
-### Enhanced Validation
-
-More validation rules and better validation support:
-
-```php
-$customField->validation_rules = [
-    'required',
-    'min:1',
-    'max:5',
-];
+// Infolists - flexible output
+CustomFields::infolist()
+    ->forModel($record)
+    ->build() // Returns single Grid component
+    // OR
+    ->values() // Returns collection of components
 ```
 
 ## Breaking Changes
 
-### Component-Based Integration Removed
+### Component-Based Integration Replaced
 
-The biggest change is the removal of component-based integration in favor of the builder pattern:
+The biggest change is the replacement of component-based integration with the builder pattern:
 
-- `CustomFieldsComponent` is removed - use `CustomFields::form()->build()`
-- `InteractsWithCustomFields` trait is removed - use `CustomFields::table()->build()`
+- `CustomFieldsComponent` → `CustomFields::form()->forModel($record)->build()`
+- `InteractsWithCustomFields` trait → `CustomFields::table()->forModel($model)->columns()` and `->filters()`
+- `CustomFieldsInfolists` → `CustomFields::infolist()->forModel($record)->build()`
 
 ### API Changes
 
-- Direct array access to fields is deprecated
-- Use builder methods for all integrations
+- Component classes replaced with builder pattern
+- All builders use `forModel()` method (not `forResource()`)
+- Table integration returns separate `columns()` and `filters()` collections
+- Infolist can return either `build()` for single component or `values()` for collection
 - Field type system completely rewritten
 
 ## Troubleshooting
 
-### Fields Not Appearing
-
-If custom fields don't appear after upgrade:
-
-1. Ensure you've updated to the new builder syntax
-2. Check that the model uses `HasCustomFields` interface and `UsesCustomFields` trait
-3. Verify custom fields exist in the database
-4. Clear all caches
-
-### Table Columns Missing
-
-If custom field columns don't appear in tables:
-
-1. Remove the old `InteractsWithCustomFields` trait
-2. Add columns using `CustomFields::table()->forResource()->build()`
-3. Ensure the resource class is passed correctly
-
-### Common Issues and Solutions
-
 <AccordionGroup>
   <Accordion title="Class 'CustomFieldsComponent' not found">
-    Replace `CustomFieldsComponent::make()` with:
+    Replace with the new builder API:
     ```php
-    ...CustomFields::form()
-        ->forResource(static::class)
+    // Old
+    CustomFieldsComponent::make()
+    
+    // New
+    CustomFields::form()
+        ->forModel($form->getRecord())
         ->build()
     ```
   </Accordion>
   
   <Accordion title="Trait 'InteractsWithCustomFields' not found">
-    Remove the trait and add to your table method:
+    The trait namespace has changed and usage is different:
     ```php
+    // Old: In ListRecords page
+    use Relaticle\CustomFields\Concerns\InteractsWithCustomFields;
+    
+    // New: In Resource table() method
     ...CustomFields::table()
-        ->forResource(static::class)
-        ->build()
+        ->forModel($table->getModel())
+        ->columns()
     ```
   </Accordion>
   
-  <Accordion title="Custom field values not saving">
-    - Ensure model has `UsesCustomFields` trait
-    - Check that model implements `HasCustomFields` interface
-    - Verify database has the `settings` column in `custom_field_options`
+  <Accordion title="Custom fields not appearing">
+    Check these common issues:
+    - Model must implement `HasCustomFields` and use `UsesCustomFields` trait
+    - Use `forModel()` not `forResource()` in builders
+    - Clear caches after upgrading
+    - Verify custom fields exist in database
+  </Accordion>
+  
+  <Accordion title="Table columns or filters missing">
+    Remember to use spread operator and call the right methods:
+    ```php
+    ->columns([
+        // Your columns
+        ...CustomFields::table()
+            ->forModel($table->getModel())
+            ->columns(), // Note: columns() not build()
+    ])
+    ->filters([
+        // Your filters  
+        ...CustomFields::table()
+            ->forModel($table->getModel())
+            ->filters(), // Note: filters() not build()
+    ])
+    ```
   </Accordion>
 </AccordionGroup>
 
 ## Migration Checklist
 
-Use this checklist to ensure a complete migration:
-
-- [ ] Backup database and application files
-- [ ] Update composer dependencies to v2
-- [ ] Run `php artisan custom-fields:upgrade --check`
-- [ ] Fix any critical issues identified
+- [ ] Backup your application
+- [ ] Run `composer require relaticle/custom-fields:"^2.0" -W`
 - [ ] Run `php artisan custom-fields:upgrade`
-- [ ] Update form schemas to use builder API
-- [ ] Update table definitions to use builder API
-- [ ] Add infolist support if needed
-- [ ] Remove deprecated traits and components
-- [ ] Test all forms with custom fields
-- [ ] Test all tables with custom field columns
-- [ ] Clear all application caches
-- [ ] Deploy to staging and test thoroughly
-- [ ] Deploy to production
+- [ ] Update forms: `CustomFieldsComponent::make()` → `CustomFields::form()->forModel($record)->build()`
+- [ ] Update tables: Remove `InteractsWithCustomFields` trait, add `...CustomFields::table()->forModel($model)->columns()`
+- [ ] Update infolists: `CustomFieldsInfolists::make()` → `CustomFields::infolist()->forModel($record)->build()`
+- [ ] Clear caches and test thoroughly
