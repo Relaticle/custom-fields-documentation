@@ -29,6 +29,7 @@
               "v2/essentials/authorization",
               "v2/essentials/preset-custom-fields",
               "v2/essentials/import-export",
+              "v2/essentials/field-types",
               "v2/essentials/data-model"
             ]
           },
@@ -62,6 +63,7 @@
           {
             "group": "Essentials",
             "pages": [
+              "v2/essentials/field-types",
               "v1/essentials/configuration",
               "v1/essentials/authorization",
               "v1/essentials/preset-custom-fields",

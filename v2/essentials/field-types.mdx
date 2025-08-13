@@ -1,0 +1,479 @@
+---
+title: 'Field Types'
+description: 'Built-in field types and how to create custom ones'
+icon: 'shapes'
+---
+
+Custom Fields v2 introduces a powerful, extensible field type system that allows developers to create their own custom field types alongside the 18 built-in types.
+
+## Built-in Field Types
+
+Custom Fields v2 comes with 18 pre-configured field types:
+
+### Text Input Types
+
+<AccordionGroup>
+  <Accordion title="Text Field" icon="text">
+    **Key:** `text`  
+    **Data Type:** String  
+    **Features:** Basic text input with validation for length, patterns, email format
+    
+    ```php
+    ValidationRule::REQUIRED,
+    ValidationRule::MIN,
+    ValidationRule::MAX,
+    ValidationRule::EMAIL,
+    ValidationRule::ALPHA,
+    ValidationRule::ALPHA_NUM,
+    ```
+  </Accordion>
+  
+  <Accordion title="Textarea" icon="align-left">
+    **Key:** `textarea`  
+    **Data Type:** Text  
+    **Features:** Multi-line text input for longer content
+  </Accordion>
+  
+  <Accordion title="Number" icon="hashtag">
+    **Key:** `number`  
+    **Data Type:** Integer/Float  
+    **Features:** Numeric input with min/max validation
+  </Accordion>
+  
+  <Accordion title="Currency" icon="dollar-sign">
+    **Key:** `currency`  
+    **Data Type:** Float  
+    **Features:** Currency formatting with locale support
+  </Accordion>
+  
+  <Accordion title="Link" icon="link">
+    **Key:** `link`  
+    **Data Type:** String  
+    **Features:** URL validation and formatting
+  </Accordion>
+</AccordionGroup>
+
+### Rich Content Types
+
+<AccordionGroup>
+  <Accordion title="Rich Editor" icon="file-text">
+    **Key:** `rich-editor`  
+    **Data Type:** Text  
+    **Features:** WYSIWYG editor with formatting tools
+  </Accordion>
+  
+  <Accordion title="Markdown Editor" icon="markdown">
+    **Key:** `markdown-editor`  
+    **Data Type:** Text  
+    **Features:** Markdown syntax with preview
+  </Accordion>
+  
+  <Accordion title="Tags Input" icon="tags">
+    **Key:** `tags-input`  
+    **Data Type:** JSON  
+    **Features:** Multiple tags with autocomplete
+  </Accordion>
+</AccordionGroup>
+
+### Selection Types
+
+<AccordionGroup>
+  <Accordion title="Select" icon="list">
+    **Key:** `select`  
+    **Data Type:** String  
+    **Features:** Single selection from predefined options
+  </Accordion>
+  
+  <Accordion title="Multi-Select" icon="list-check">
+    **Key:** `multi-select`  
+    **Data Type:** JSON  
+    **Features:** Multiple selections from options
+  </Accordion>
+  
+  <Accordion title="Radio" icon="circle-dot">
+    **Key:** `radio`  
+    **Data Type:** String  
+    **Features:** Single choice with radio buttons
+  </Accordion>
+  
+  <Accordion title="Checkbox" icon="square-check">
+    **Key:** `checkbox`  
+    **Data Type:** Boolean  
+    **Features:** Simple true/false toggle
+  </Accordion>
+  
+  <Accordion title="Checkbox List" icon="list-check">
+    **Key:** `checkbox-list`  
+    **Data Type:** JSON  
+    **Features:** Multiple checkboxes for multi-selection
+  </Accordion>
+  
+  <Accordion title="Toggle" icon="toggle-on">
+    **Key:** `toggle`  
+    **Data Type:** Boolean  
+    **Features:** Switch-style boolean input
+  </Accordion>
+  
+  <Accordion title="Toggle Buttons" icon="toggle-left">
+    **Key:** `toggle-buttons`  
+    **Data Type:** String  
+    **Features:** Button group for selection
+  </Accordion>
+</AccordionGroup>
+
+### Date & Color Types
+
+<AccordionGroup>
+  <Accordion title="Date" icon="calendar">
+    **Key:** `date`  
+    **Data Type:** Date  
+    **Features:** Date picker with format validation
+  </Accordion>
+  
+  <Accordion title="Date Time" icon="clock">
+    **Key:** `datetime`  
+    **Data Type:** DateTime  
+    **Features:** Combined date and time picker
+  </Accordion>
+  
+  <Accordion title="Color Picker" icon="palette">
+    **Key:** `color-picker`  
+    **Data Type:** String  
+    **Features:** Visual color selection with hex/rgb support
+  </Accordion>
+</AccordionGroup>
+
+## Creating Custom Field Types
+
+You can extend Custom Fields by creating your own field types. This is useful when you need specialized functionality not covered by the built-in types.
+
+### Step 1: Create Your Field Type Class
+
+Create a class that implements `FieldTypeDefinitionInterface`:
+
+```php
+namespace App\CustomFields\FieldTypes;
+
+use Relaticle\CustomFields\Contracts\FieldTypeDefinitionInterface;
+use Relaticle\CustomFields\Enums\FieldDataType;
+use Relaticle\CustomFields\Enums\ValidationRule;
+use Relaticle\CustomFields\FieldTypes\Concerns\HasCommonFieldProperties;
+
+class StarRatingFieldType implements FieldTypeDefinitionInterface
+{
+    use HasCommonFieldProperties; // Provides common implementations
+    
+    public function getKey(): string
+    {
+        return 'star-rating';
+    }
+    
+    public function getLabel(): string
+    {
+        return 'Star Rating';
+    }
+    
+    public function getIcon(): string
+    {
+        return 'mdi-star';
+    }
+    
+    public function getDataType(): FieldDataType
+    {
+        return FieldDataType::INTEGER;
+    }
+    
+    public function getPriority(): int
+    {
+        return 50; // Lower numbers appear first
+    }
+    
+    public function getFormComponentClass(): string
+    {
+        return StarRatingFormComponent::class;
+    }
+    
+    public function getTableColumnClass(): string
+    {
+        return StarRatingColumn::class;
+    }
+    
+    public function getInfolistEntryClass(): string
+    {
+        return StarRatingEntry::class;
+    }
+    
+    public function allowedValidationRules(): array
+    {
+        return [
+            ValidationRule::REQUIRED,
+            ValidationRule::MIN,
+            ValidationRule::MAX,
+        ];
+    }
+}
+```
+
+### Step 2: Create Form Component
+
+Create a Filament form component for your field type:
+
+```php
+namespace App\CustomFields\Components\Forms;
+
+use Relaticle\CustomFields\Filament\Integration\Base\AbstractFormComponent;
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\Select;
+
+class StarRatingFormComponent extends AbstractFormComponent
+{
+    protected function createField(): Field
+    {
+        return Select::make($this->getStatePath())
+            ->options([
+                1 => '⭐',
+                2 => '⭐⭐',
+                3 => '⭐⭐⭐',
+                4 => '⭐⭐⭐⭐',
+                5 => '⭐⭐⭐⭐⭐',
+            ])
+            ->native(false);
+    }
+}
+```
+
+### Step 3: Create Table Column
+
+Create a table column for displaying your field:
+
+```php
+namespace App\CustomFields\Components\Tables;
+
+use Relaticle\CustomFields\Filament\Integration\Base\AbstractColumn;
+use Filament\Tables\Columns\Column;
+use Filament\Tables\Columns\TextColumn;
+
+class StarRatingColumn extends AbstractColumn
+{
+    protected function createColumn(): Column
+    {
+        return TextColumn::make($this->getStatePath())
+            ->formatStateUsing(fn ($state) => str_repeat('⭐', (int) $state))
+            ->html();
+    }
+}
+```
+
+### Step 4: Create Infolist Entry
+
+Create an infolist entry for viewing your field:
+
+```php
+namespace App\CustomFields\Components\Infolists;
+
+use Relaticle\CustomFields\Filament\Integration\Base\AbstractInfolistsComponent;
+use Filament\Infolists\Components\Entry;
+use Filament\Infolists\Components\TextEntry;
+
+class StarRatingEntry extends AbstractInfolistsComponent
+{
+    protected function createEntry(): Entry
+    {
+        return TextEntry::make($this->getStatePath())
+            ->formatStateUsing(fn ($state) => str_repeat('⭐', (int) $state))
+            ->html();
+    }
+}
+```
+
+### Step 5: Register Your Field Type
+
+Register your custom field type in a service provider:
+
+```php
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Relaticle\CustomFields\Facades\CustomFieldsType;
+use App\CustomFields\FieldTypes\StarRatingFieldType;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        CustomFieldsType::register([
+            StarRatingFieldType::class,
+        ]);
+    }
+}
+```
+
+## Advanced Field Type Features
+
+### Supporting Options
+
+If your field type needs predefined options (like select or radio), implement the option-related interfaces:
+
+```php
+use Relaticle\CustomFields\Contracts\HasOptionsInterface;
+
+class CustomSelectFieldType implements FieldTypeDefinitionInterface, HasOptionsInterface
+{
+    // ... other methods
+    
+    public function requiresOptions(): bool
+    {
+        return true;
+    }
+    
+    public function acceptsArbitraryValues(): bool
+    {
+        return false; // Set to true for tags-like behavior
+    }
+}
+```
+
+### Custom Data Types
+
+The available data types determine how values are stored:
+
+```php
+enum FieldDataType: string
+{
+    case TEXT = 'text';
+    case INTEGER = 'integer';
+    case FLOAT = 'float';
+    case BOOLEAN = 'boolean';
+    case DATE = 'date';
+    case DATETIME = 'datetime';
+    case JSON = 'json';
+}
+```
+
+### Encryption Support
+
+Enable encryption for sensitive field types:
+
+```php
+public function isEncryptable(): bool
+{
+    return true; // Allows users to encrypt this field's values
+}
+```
+
+### Search and Filter Support
+
+Control table functionality:
+
+```php
+public function isSearchable(): bool
+{
+    return true; // Enable text search
+}
+
+public function isSortable(): bool
+{
+    return true; // Enable column sorting
+}
+
+public function isFilterable(): bool
+{
+    return true; // Enable filtering
+}
+
+public function getTableFilterClass(): ?string
+{
+    return StarRatingFilter::class; // Custom filter component
+}
+```
+
+## Using the HasCommonFieldProperties Trait
+
+The `HasCommonFieldProperties` trait provides default implementations for common methods:
+
+```php
+use HasCommonFieldProperties;
+
+// Provides defaults for:
+// - getTableFilterClass() => null
+// - isSearchable() => true
+// - isSortable() => true
+// - isFilterable() => false
+// - isEncryptable() => false
+// - acceptsArbitraryValues() => false
+```
+
+## Field Type Priority
+
+Field types are ordered by priority (lower numbers first):
+
+- **10-20**: Common text fields (text, number, textarea)
+- **30-40**: Selection fields (select, radio, checkbox)
+- **50-60**: Specialized fields (date, color, currency)
+- **70+**: Advanced fields (rich editor, markdown)
+
+## Best Practices
+
+1. **Reuse Existing Components**: Extend Filament's built-in components when possible
+2. **Follow Naming Conventions**: Use descriptive keys like `company-lookup` or `rating-stars`
+3. **Validate Appropriately**: Only allow validation rules that make sense for your field type
+4. **Document Your Field**: Add PHPDoc comments explaining the field's purpose
+5. **Test Thoroughly**: Create tests for form input, table display, and data storage
+
+## Example: Country Select Field
+
+Here's a complete example of a country selection field:
+
+```php
+// 1. Field Type Definition
+class CountrySelectFieldType implements FieldTypeDefinitionInterface
+{
+    use HasCommonFieldProperties;
+    
+    public function getKey(): string
+    {
+        return 'country-select';
+    }
+    
+    public function getLabel(): string
+    {
+        return 'Country Select';
+    }
+    
+    public function getIcon(): string
+    {
+        return 'mdi-earth';
+    }
+    
+    public function getDataType(): FieldDataType
+    {
+        return FieldDataType::TEXT;
+    }
+    
+    public function getFormComponentClass(): string
+    {
+        return CountrySelectFormComponent::class;
+    }
+    
+    // ... other required methods
+}
+
+// 2. Form Component with country list
+class CountrySelectFormComponent extends AbstractFormComponent
+{
+    protected function createField(): Field
+    {
+        return Select::make($this->getStatePath())
+            ->options(Countries::all()->pluck('name', 'code'))
+            ->searchable()
+            ->preload();
+    }
+}
+
+// 3. Register in AppServiceProvider
+CustomFieldsType::register([
+    CountrySelectFieldType::class,
+]);
+```
+
+Your custom field type will now appear in the field type dropdown when creating new custom fields!

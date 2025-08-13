@@ -52,11 +52,11 @@ class Product extends Model implements HasCustomFields
 }
 
 // 2. Add to your Filament resource
-public function form(Form $form): Form
+public function form(Schema $schema): Schema
 {
-    return $form->schema([
+    return $schema->components([
         // Your existing fields...
-        CustomFieldsComponent::make(),
+        ...CustomFields::form()->forModel($schema->getModel())->columns(),
     ]);
 }
 ```
@@ -121,18 +121,6 @@ public function form(Form $form): Form
     - Tags Input
   </Tab>
 </Tabs>
-
-## Ready to Get Started?
-
-### Requirements
-- **PHP 8.2+** - Modern PHP for optimal performance
-- **Laravel 10.0+** - Latest Laravel features via Filament
-- **Filament 3.0+** - Full admin panel integration
-
-### Next Steps
-1. **[Install Custom Fields](/installation)** - Quick composer installation
-2. **[Follow the Quickstart](/quickstart)** - Add your first custom field in minutes
-3. **[Explore the Documentation](/essentials/configuration)** - Configure for your specific needs
 
 <Note>
 **Need a commercial license?** See our [licensing options](/legal-acknowledgments/license) for closed-source projects.
