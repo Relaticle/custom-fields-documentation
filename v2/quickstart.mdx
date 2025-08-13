@@ -4,13 +4,7 @@ description: 'Get Custom Fields v2 working in your Filament project in under 5 m
 icon: 'rocket'
 ---
 
-Get Custom Fields v2 integrated into your Filament resource in just 5 simple steps.
-
-<Note>
-Make sure you've completed the [Installation](/v2/installation) steps first.
-</Note>
-
-## Step 1: Register the Plugin
+## Register the Plugin
 
 Add the Custom Fields plugin to your panel:
 
@@ -26,7 +20,7 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-## Step 2: Prepare Your Model
+## Prepare Your Model
 
 Implement the interface and use the trait:
 
@@ -41,7 +35,7 @@ class Customer extends Model implements HasCustomFields
 }
 ```
 
-## Step 3: Add to Your Form
+## Add to Your Form
 
 Add custom fields to your resource form:
 
@@ -65,7 +59,7 @@ public static function form(Schema $schema): Schema
 }
 ```
 
-## Step 4: Add to Your Table
+## Add to Your Table
 
 Display custom fields in your table:
 
@@ -94,7 +88,7 @@ public static function table(Table $table): Table
 }
 ```
 
-## Step 5: Add to Info Lists (Optional)
+## Add to Info Lists
 
 For view pages, include custom fields:
 
