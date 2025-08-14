@@ -14,7 +14,7 @@ The easiest way to upgrade is using the built-in upgrade command:
 
 ```bash
 composer require relaticle/custom-fields:"^2.0" -W
-php artisan custom-fields:upgrade
+vendor/bin/custom-fields upgrade
 ```
 
 This command handles all necessary migrations and cache clearing automatically.
@@ -342,7 +342,7 @@ V2 introduces a new builder pattern while maintaining backward compatibility:
 
 - [ ] Backup your application
 - [ ] Run `composer require relaticle/custom-fields:"^2.0" -W`
-- [ ] Run `php artisan custom-fields:upgrade`
+- [ ] Run `vendor/bin/custom-fields upgrade`
 - [ ] Update forms: `CustomFieldsComponent::make()` → `CustomFields::form()->forModel($record)->build()`
 - [ ] Update tables: Either update `InteractsWithCustomFields` namespace OR migrate to `...CustomFields::table()->forModel($model)->columns()`
 - [ ] Update infolists: `CustomFieldsInfolists::make()` → `CustomFields::infolist()->forModel($record)->build()`
