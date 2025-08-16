@@ -1,0 +1,127 @@
+---
+title: Custom Fields v2 - Enhanced Dynamic Fields for Filament
+sidebarTitle: 'Introduction'
+description: 'Version 2 brings improved performance, better UX, and more field types to Custom Fields'
+icon: 'house'
+---
+
+## What's New in Version 2
+
+Custom Fields v2 is a major upgrade that brings significant improvements while maintaining the core philosophy: **no more migrations for custom fields**. This version introduces enhanced performance, better developer experience, and more powerful field types.
+
+### Key Improvements
+- **50% faster field rendering** with optimized caching
+- **New field types**: JSON, Rich Editor, Code Editor
+- **Better validation** with custom rule builders
+- **Improved UI/UX** with drag-and-drop field ordering
+- **TypeScript support** for better IDE integration
+- **Backward compatible** upgrade path from v1
+
+<Frame>
+  <iframe width="100%" height="315" src="https://www.youtube.com/embed/6iVfeS7VixA?si=3L8H22mbMayEuHs8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</Frame>
+
+## Open Source with Dual Licensing
+
+Custom Fields is now open source under AGPL-3.0, with commercial licenses available for proprietary projects.
+
+<CardGroup cols={2}>
+  <Card title="Open Source (AGPL-3.0)" icon="code-branch">
+    Free for open source projects, non-profits, and education
+  </Card>
+  <Card title="Commercial License" icon="building">
+    For closed-source applications
+  </Card>
+</CardGroup>
+
+## The Traditional Way vs. Custom Fields
+
+### Before: The Migration Cycle
+Every new field request means:
+1. Writing a migration
+2. Testing database changes
+3. Coordinating deployments
+4. Hoping nothing breaks in production
+
+### After: Two Lines of Code
+```php
+// 1. Add to your model
+class Product extends Model implements HasCustomFields
+{
+    use UsesCustomFields;
+}
+
+// 2. Add to your Filament resource
+public function form(Schema $schema): Schema
+{
+    return $schema->components([
+        // Your existing fields...
+        ...CustomFields::form()->forSchema($schema)->columns(),
+    ]);
+}
+```
+
+**That's it.** Your users can now add unlimited custom fields through the admin panel - no migrations, no deployments, no developer intervention.
+
+## Why Custom Fields Works
+
+### For Developers
+- **Zero migrations** - Add fields dynamically without touching your database schema
+- **Full Filament integration** - Works seamlessly with forms, tables, and infolists
+- **18 field types** - From simple text to rich editors and date pickers
+- **Type-safe validation** - Built-in Laravel validation with custom rules
+
+### For End Users
+- **Self-service** - Create their own fields without developer intervention
+- **Intuitive UI** - Drag-and-drop ordering and section management
+- **Data management** - Built-in CSV import/export capabilities
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Multi-tenancy Ready">
+    Complete tenant isolation with automatic scoping
+  </Card>
+  <Card title="Field Encryption">
+    Optional encryption for sensitive text fields
+  </Card>
+  <Card title="Comprehensive Validation">
+    Built-in Laravel validation rules per field type
+  </Card>
+  <Card title="Import/Export Ready">
+    Built-in CSV capabilities for data management
+  </Card>
+</CardGroup>
+
+## Available Field Types
+
+<Tabs>
+  <Tab title="Text Fields">
+    - Text
+    - Number
+    - Currency
+    - Link
+    - Textarea
+    - Rich Editor
+    - Markdown Editor
+  </Tab>
+  <Tab title="Selection Fields">
+    - Select
+    - Multi-select
+    - Radio
+    - Checkbox
+    - Checkbox List
+    - Toggle
+    - Toggle Buttons
+  </Tab>
+  <Tab title="Special Fields">
+    - Date
+    - Date & Time
+    - Color Picker
+    - Tags Input
+  </Tab>
+</Tabs>
+
+<Note>
+**Need a commercial license?** See our [licensing options](/legal-acknowledgments/license) for closed-source projects.
+</Note>

@@ -1,0 +1,333 @@
+---
+title: 'Field Types'
+description: 'Built-in field types and how to create custom ones'
+icon: 'shapes'
+---
+
+Custom Fields v2 introduces a powerful, extensible field type system that allows developers to create their own custom field types alongside the 18 built-in types.
+
+## Built-in Field Types
+
+Custom Fields v2 comes with 18 pre-configured field types:
+
+| Field Type | Key | Data Type | Description |
+|------------|-----|-----------|-------------|
+| **Text Input** | `text` | String | Basic text input with validation |
+| **Textarea** | `textarea` | Text | Multi-line text input |
+| **Number** | `number` | Numeric | Numeric input with min/max validation |
+| **Currency** | `currency` | Numeric | Currency formatting with locale support |
+| **Link** | `link` | String | URL validation and formatting |
+| **Rich Editor** | `rich-editor` | Text | WYSIWYG editor with formatting |
+| **Markdown Editor** | `markdown-editor` | Text | Markdown syntax with preview |
+| **Tags Input** | `tags-input` | JSON | Multiple tags with autocomplete |
+| **Select** | `select` | String | Single selection dropdown |
+| **Multi-Select** | `multi-select` | JSON | Multiple selections |
+| **Radio** | `radio` | String | Single choice radio buttons |
+| **Checkbox** | `checkbox` | Boolean | Simple true/false toggle |
+| **Checkbox List** | `checkbox-list` | JSON | Multiple checkboxes |
+| **Toggle** | `toggle` | Boolean | Switch-style toggle |
+| **Toggle Buttons** | `toggle-buttons` | String | Button group selection |
+| **Date** | `date` | Date | Date picker |
+| **Date Time** | `datetime` | DateTime | Date and time picker |
+| **Color Picker** | `color-picker` | String | Visual color selection |
+
+## Creating Custom Field Types
+
+You can extend Custom Fields by creating your own field types. This is useful when you need specialized functionality not covered by the built-in types.
+
+### Step 1: Create Your Field Type Class
+
+Create a class that implements `FieldTypeDefinitionInterface`:
+
+```php
+namespace App\Filament\CustomFieldTypes\FieldTypes;
+
+use Relaticle\CustomFields\Contracts\FieldTypeDefinitionInterface;
+use Relaticle\CustomFields\Enums\FieldDataType;
+use Relaticle\CustomFields\Enums\ValidationRule;
+use Relaticle\CustomFields\FieldTypes\Concerns\HasCommonFieldProperties;
+
+class StarRatingFieldType implements FieldTypeDefinitionInterface
+{
+    use HasCommonFieldProperties; // Provides default implementations
+    
+    public function getKey(): string
+    {
+        return 'star-rating';
+    }
+    
+    public function getLabel(): string
+    {
+        return 'Star Rating';
+    }
+    
+    public function getIcon(): string
+    {
+        return 'mdi-star';
+    }
+    
+    public function getDataType(): FieldDataType
+    {
+        return FieldDataType::NUMERIC;
+    }
+    
+    public function getPriority(): int
+    {
+        return 45; // Lower numbers appear first
+    }
+    
+    public function getFormComponentClass(): string
+    {
+        return StarRatingFormComponent::class;
+    }
+    
+    public function getTableColumnClass(): string
+    {
+        return StarRatingColumn::class;
+    }
+    
+    public function getInfolistEntryClass(): string
+    {
+        return StarRatingEntry::class;
+    }
+    
+    public function allowedValidationRules(): array
+    {
+        return [
+            ValidationRule::REQUIRED,
+            ValidationRule::MIN,
+            ValidationRule::MAX,
+        ];
+    }
+}
+```
+
+### Step 2: Create Form Component
+
+Create a form component that extends `AbstractFormComponent`:
+
+```php
+namespace App\Filament\CustomFieldTypes\Components\Forms;
+
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\Select;
+use Relaticle\CustomFields\Filament\Integration\Base\AbstractFormComponent;
+use Relaticle\CustomFields\Models\CustomField;
+
+readonly class StarRatingFormComponent extends AbstractFormComponent
+{
+    public function create(CustomField $customField): Field
+    {
+        return Select::make($this->getFieldName($customField))
+            ->options([
+                1 => '⭐ Poor',
+                2 => '⭐⭐ Fair',
+                3 => '⭐⭐⭐ Good',
+                4 => '⭐⭐⭐⭐ Very Good',
+                5 => '⭐⭐⭐⭐⭐ Excellent',
+            ])
+            ->native(false)
+            ->searchable(false)
+            ->default(3);
+    }
+}
+```
+
+### Step 3: Create Table Column
+
+Create a table column that extends `AbstractTableColumn`:
+
+```php
+namespace App\Filament\CustomFieldTypes\Components\Tables;
+
+use Filament\Tables\Columns\Column;
+use Filament\Tables\Columns\TextColumn;
+use Relaticle\CustomFields\Filament\Integration\Base\AbstractTableColumn;
+use Relaticle\CustomFields\Models\CustomField;
+
+class StarRatingColumn extends AbstractTableColumn
+{
+    public function make(CustomField $customField): Column
+    {
+        return TextColumn::make($this->getFieldName($customField))
+            ->formatStateUsing(function ($state) {
+                if ($state === null) {
+                    return 'No rating';
+                }
+                
+                $rating = (int) $state;
+                $stars = str_repeat('⭐', $rating);
+                
+                return "$stars ($rating/5)";
+            })
+            ->html()
+            ->alignCenter();
+    }
+}
+```
+
+### Step 4: Create Infolist Entry
+
+Create an infolist entry that extends `AbstractInfolistEntry`:
+
+```php
+namespace App\Filament\CustomFieldTypes\Components\Infolists;
+
+use Filament\Infolists\Components\Entry;
+use Filament\Infolists\Components\TextEntry;
+use Relaticle\CustomFields\Filament\Integration\Base\AbstractInfolistEntry;
+use Relaticle\CustomFields\Models\CustomField;
+
+class StarRatingEntry extends AbstractInfolistEntry
+{
+    public function make(CustomField $customField): Entry
+    {
+        return TextEntry::make($this->getFieldName($customField))
+            ->label($customField->name)
+            ->formatStateUsing(function ($state) {
+                if ($state === null) {
+                    return 'No rating';
+                }
+                
+                $rating = (int) $state;
+                $stars = str_repeat('⭐', $rating);
+                $labels = [
+                    1 => 'Poor',
+                    2 => 'Fair',
+                    3 => 'Good',
+                    4 => 'Very Good',
+                    5 => 'Excellent',
+                ];
+                
+                return "$stars - {$labels[$rating]} ($rating/5)";
+            })
+            ->html();
+    }
+}
+```
+
+### Step 5: Register Your Field Type
+
+There are two ways to register your custom field type:
+
+#### Option 1: Register in Filament Panel Provider (Recommended)
+
+```php
+namespace App\Providers\Filament;
+
+use App\Filament\CustomFieldTypes\FieldTypes\StarRatingFieldType;
+use Relaticle\CustomFields\CustomFieldsPlugin;
+
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->plugins([
+                CustomFieldsPlugin::make()->registerFieldTypes([
+                    StarRatingFieldType::class,
+                ]),
+                // Other plugins...
+            ]);
+    }
+}
+```
+
+#### Option 2: Register in Service Provider
+
+```php
+namespace App\Providers;
+
+use App\Filament\CustomFieldTypes\FieldTypes\StarRatingFieldType;
+use Relaticle\CustomFields\Facades\CustomFieldsType;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        CustomFieldsType::register([
+            StarRatingFieldType::class,
+        ]);
+    }
+}
+```
+
+## Important Implementation Notes
+
+### Using Abstract Base Classes
+
+Custom Fields v2 provides abstract base classes that you **must** extend:
+
+- **Form Components**: Extend `AbstractFormComponent` and implement the `create()` method
+- **Table Columns**: Extend `AbstractTableColumn` and implement the `make()` method  
+- **Infolist Entries**: Extend `AbstractInfolistEntry` and implement the `make()` method
+
+These base classes provide essential functionality for integrating with the Custom Fields system.
+
+### Available Traits
+
+The `HasCommonFieldProperties` trait provides default implementations for:
+
+- `getTableFilterClass()` - Returns null by default
+- `isSearchable()` - Returns true by default
+- `isSortable()` - Returns true by default
+- `isFilterable()` - Returns false by default
+- `isEncryptable()` - Returns false by default
+
+### Data Types
+
+Custom Fields supports these data types:
+
+```php
+enum FieldDataType: string
+{
+    case STRING = 'string';
+    case TEXT = 'text';
+    case NUMERIC = 'numeric';
+    case BOOLEAN = 'boolean';
+    case DATE = 'date';
+    case DATETIME = 'datetime';
+    case JSON = 'json';
+}
+```
+
+Choose the appropriate data type based on how your field's values should be stored in the database.
+
+### Field Type Priority
+
+Field types are ordered by priority (lower numbers appear first):
+
+- **10-20**: Common text fields
+- **30-40**: Selection fields
+- **50-60**: Specialized fields
+- **70+**: Advanced fields
+
+## Best Practices
+
+1. **Use Existing Filament Components**: Build on Filament's components like `Select`, `TextInput`, etc.
+2. **Follow Naming Conventions**: Use kebab-case for keys (e.g., `star-rating`, `country-select`)
+3. **Implement Only What You Need**: Use the `HasCommonFieldProperties` trait for defaults
+4. **Test Your Components**: Ensure your field type works in forms, tables, and infolists
+5. **Consider Validation**: Only allow validation rules that make sense for your field type
+
+## Troubleshooting
+
+### Field Type Not Appearing
+
+If your custom field type doesn't appear in the dropdown:
+
+1. Ensure your field type class implements `FieldTypeDefinitionInterface`
+2. Verify the field type is registered correctly
+3. Clear Laravel's cache: `php artisan cache:clear`
+4. Check that all required methods return valid values
+
+### Components Not Rendering
+
+If your components don't render correctly:
+
+1. Verify you're extending the correct abstract classes
+2. Check that you're using the correct method names (`create()` for forms, `make()` for tables/infolists)
+3. Ensure you're using `$this->getFieldName($customField)` for the field name
+4. Test with simple Filament components first before adding complexity
+
+Your custom field type will now appear in the field type dropdown when creating new custom fields!
