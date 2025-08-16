@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Filament Custom Fields",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373"
+    "primary": "#7C3AED",
+    "light": "#7C3AED",
+    "dark": "#7C3AED"
   },
   "favicon": "/favicon.svg",
   "navigation": {
