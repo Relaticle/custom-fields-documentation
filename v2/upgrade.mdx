@@ -261,14 +261,14 @@ CustomFields::infolist()
 V2 introduces a new builder pattern while maintaining backward compatibility:
 
 **Forms:**
-- `CustomFieldsComponent` → Removed, use `CustomFields::form()->forModel($record)->build()`
+- `CustomFieldsComponent` → Removed, use `CustomFields::form()->forSchema($schema)->build()`
 
 **Tables (two options):**
 - **Option 1 (Recommended):** Use builder API: `CustomFields::table()->forModel($model)->columns()` and `->filters()`
 - **Option 2:** Continue using `InteractsWithCustomFields` trait with updated namespace: `Relaticle\CustomFields\Concerns\InteractsWithCustomFields`
 
 **Infolists:**
-- `CustomFieldsInfolists` → Removed, use `CustomFields::infolist()->forModel($record)->build()`
+- `CustomFieldsInfolists` → Removed, use `CustomFields::infolist()->forSchema($schema)->build()`
 
 ### API Changes
 
@@ -343,7 +343,7 @@ V2 introduces a new builder pattern while maintaining backward compatibility:
 - [ ] Backup your application
 - [ ] Run `composer require relaticle/custom-fields:"^2.0" -W`
 - [ ] Run `vendor/bin/custom-fields-upgrade`
-- [ ] Update forms: `CustomFieldsComponent::make()` → `CustomFields::form()->forModel($record)->build()`
+- [ ] Update forms: `CustomFieldsComponent::make()` → `CustomFields::form()->forSchema($schema)->build()`
 - [ ] Update tables: Either update `InteractsWithCustomFields` namespace OR migrate to `...CustomFields::table()->forModel($model)->columns()`
-- [ ] Update infolists: `CustomFieldsInfolists::make()` → `CustomFields::infolist()->forModel($record)->build()`
+- [ ] Update infolists: `CustomFieldsInfolists::make()` → `CustomFields::infolist()->forModel($model)->build()`
 - [ ] Clear caches and test thoroughly
