@@ -51,10 +51,9 @@ public static function form(Schema $schema): Schema
             Forms\Components\TextInput::make('email'),
 
             // Add Custom Fields
-            CustomFields::form()
-                ->forModel($schema->getRecord())
-                ->build()
-                ->columnSpanFull()
+            CustomFields::form()->forSchema($schema)
+                                ->build()
+                                ->columnSpanFull()
         ]);
 }
 ```
@@ -101,7 +100,7 @@ public static function infolist(Schema $schema): Schema
             
             // Add Custom Fields
             CustomFields::infolist()
-                ->forModel($schema->getRecord())
+                ->forSchema($schema)
                 ->build(),
         ]);
 }

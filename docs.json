@@ -11,7 +11,7 @@
   "navigation": {
     "versions": [
       {
-        "version": "v2",
+        "version": "V2-beta",
         "groups": [
           {
             "group": "Get Started",
@@ -50,7 +50,7 @@
         ]
       },
       {
-        "version": "v1",
+        "version": "V1",
         "groups": [
           {
             "group": "Get Started",
