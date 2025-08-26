@@ -211,7 +211,43 @@ The main change in v2 is the move from component-based integration to a fluent b
     </Tab>
 </Tabs>
 
-### 4. Final Steps
+### 4. Configuration Updates (Optional)
+
+Custom Fields v2 introduces improved field type management. If you have custom field types or specific field configurations, review your `config/custom-fields.php`:
+
+```php
+'field_types' => [
+    'enabled' => [
+        // Empty array = all field types enabled (default)
+        // Specify field type keys to allow only those types:
+        // 'text', 'textarea', 'select', 'checkbox', 'number', 'date'
+    ],
+    'disabled' => [
+        // Specify field type keys to disable:
+        // 'rich_editor', 'markdown_editor'
+    ],
+],
+```
+
+### 5. Field Type Architecture Changes
+
+Custom Fields v2 now uses trait-based composition for field types instead of abstract base classes. If you have custom field types:
+
+- **Interface**: Your field types should implement `FieldTypeDefinitionInterface` (unchanged)
+- **Traits**: Use `HasCommonFieldProperties` and optionally `HasImportExportDefaults` 
+- **Benefits**: More flexible composition, easier to extend with new behaviors
+
+```php
+class CustomFieldType implements FieldTypeDefinitionInterface
+{
+    use HasCommonFieldProperties; // Gets sensible defaults
+    use HasImportExportDefaults;  // Optional: for import/export
+    
+    // Only implement what's unique to your field type
+}
+```
+
+### 6. Final Steps
 
 After updating your code, clear all caches:
 

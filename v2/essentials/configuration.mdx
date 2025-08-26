@@ -69,61 +69,55 @@ $section = CustomFields::newSectionModel();
 
 ## Configuration File
 
-The configuration file (`config/custom-fields.php`) allows you to customize various aspects of the plugin. Below is the
-default configuration:
+The configuration file (`config/custom-fields.php`) allows you to customize various aspects of the plugin. Custom Fields v2 introduces a cleaner, more organized configuration structure.
+
+### Entity Configuration
+
+The most important section configures which models can use custom fields:
 
 ```php
-return [
-    /*
-    |--------------------------------------------------------------------------
-    | Features
-    |--------------------------------------------------------------------------
-    |
-    | This section controls the features of the Custom Fields package.
-    | You can enable or disable features as needed.
-    |
-    */
-    'features' => [
-        'encryption' => [
-            'enabled' => true,
-        ],
-    ],
+'entity_configuration' => EntityConfiguration::configure()
+    ->discover(app_path('Models'))  // Auto-discover models
+    ->cache(true)                   // Cache for performance
+    ->models([
+        // Explicit entity configurations with full control
+        EntityModel::for(\App\Models\Post::class)
+            ->label('Blog Post', 'Blog Posts')
+            ->icon('heroicon-o-document-text')
+            ->searchIn(['title', 'content'])
+            ->features([EntityFeature::CUSTOM_FIELDS, EntityFeature::LOOKUP_SOURCE])
+            ->priority(10),
+    ]),
+```
 
-    /*
-    |--------------------------------------------------------------------------
-    | Entity Resources Customization
-    |--------------------------------------------------------------------------
-    |
-    | This section allows you to customize the behavior of entity resources,
-    | such as enabling table column toggling and setting default visibility.
-    |
-    */
-    'resource' => [
-        'table' => [
-            'columns' => [
-                'enabled' => true,
-            ],
-            'columns_toggleable' => [
-                'enabled' => true,
-                'user_control' => true,
-                'hidden_by_default' => true,
-            ],
-            'filters' => [
-                'enabled' => true,
-            ],
-        ],
-    ],
+### Features Configuration
 
-    /*
-    |--------------------------------------------------------------------------
-    | Custom Field Types Configuration
-    |--------------------------------------------------------------------------
-    |
-    | This section controls the Custom Field Types.
-    | This allows you to customize the behavior of the field types.
-    |
-    */
-    'field_types_configuration' => [
+Control which features are enabled:
+
+```php
+'features' => [
+    'conditional_visibility' => true,  // Show/hide fields based on conditions
+    'encryption' => true,              // Enable field encryption
+    'select_option_colors' => true,    // Color options for select fields
+],
+```
+
+### Field Types Configuration
+
+Configure which field types are available and their behavior:
+
+```php
+'field_types' => [
+    'enabled' => [
+        // Empty array = all field types enabled (default)
+        // Specify field type keys to allow only those types:
+        // 'text', 'textarea', 'select', 'checkbox', 'number', 'date'
+    ],
+    'disabled' => [
+        // Specify field type keys to disable:
+        // 'rich_editor', 'markdown_editor'
+    ],
+    'configuration' => [
         'date' => [
             'native' => false,
             'format' => 'Y-m-d',
@@ -135,113 +129,187 @@ return [
             'display_format' => null,
         ],
     ],
+],
+```
 
-    /*
-    |--------------------------------------------------------------------------
-    | Custom Fields Resource Configuration
-    |--------------------------------------------------------------------------
-    |
-    | This section controls the Custom Fields resource.
-    | This allows you to customize the behavior of the resource.
-    |
-    */
-    'custom_fields_resource' => [
-        'should_register_navigation' => true,
-        'slug' => 'custom-fields',
-        'navigation_sort' => -1,
-        'navigation_group' => true,
-        'cluster' => null,
+### Resource Configuration
+
+Customize how custom fields appear in Filament tables:
+
+```php
+'resource' => [
+    'table' => [
+        'columns' => true,              // Show custom field columns
+        'columns_toggleable' => true,   // Allow users to toggle columns
+        'filters' => true,              // Show custom field filters
     ],
+],
+```
 
-    /*
-    |--------------------------------------------------------------------------
-    | Entity Resources Configuration
-    |--------------------------------------------------------------------------
-    |
-    | This section controls which Filament resources are allowed or disallowed
-    | to have custom fields. You can specify allowed resources, disallowed
-    | resources, or leave them empty to use default behavior.
-    |
-    */
-    'allowed_entity_resources' => [
-        // App\Filament\Resources\UserResource::class,
-    ],
+### Management Interface
 
-    'disallowed_entity_resources' => [
-        //
-    ],
+Configure the custom fields management page:
 
-    /*
-    |--------------------------------------------------------------------------
-    | Lookup Resources Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Define which Filament resources can be used as lookups. You can specify
-    | allowed resources, disallowed resources, or leave them empty to use
-    | default behavior.
-    |
-    */
-    'allowed_lookup_resources' => [
-        //
-    ],
+```php
+'management' => [
+    'enabled' => true,              // Enable the management interface
+    'slug' => 'custom-fields',      // URL slug
+    'navigation_sort' => -1,        // Navigation sort order
+    'navigation_group' => true,     // Group in navigation
+    'cluster' => null,              // Optional cluster assignment
+],
+```
 
-    'disallowed_lookup_resources' => [
-        //
-    ],
+### Multi-Tenancy
 
-    /*
-    |--------------------------------------------------------------------------
-    | Tenant Awareness Configuration
-    |--------------------------------------------------------------------------
-    |
-    | When enabled, this feature implements multi-tenancy using the specified
-    | tenant foreign key. Enable this before running migrations to automatically
-    | register the tenant foreign key.
-    |
-    */
-    'tenant_aware' => false,
+Enable tenant isolation:
 
-    /*
-    |--------------------------------------------------------------------------
-    | Database Migrations Paths
-    |--------------------------------------------------------------------------
-    |
-    | In these directories custom fields migrations will be stored and ran when migrating. A custom fields
-    | migration created via the make:custom-fields-migration command will be stored in the first path or
-    | a custom defined path when running the command.
-    |
-    */
-    'migrations_paths' => [
-        database_path('custom-fields'),
-    ],
+```php
+'tenant_aware' => false,  // Set to true to enable multi-tenancy
+```
 
-    /*
-    |--------------------------------------------------------------------------
-    | Database Table Names
-    |--------------------------------------------------------------------------
-    |
-    | You can specify custom table names for the package's database tables here.
-    | These tables will be used to store custom fields, their values, and options.
-    |
-    */
+### Database Configuration
+
+Customize table and column names:
+
+```php
+'database' => [
+    'migrations_path' => database_path('custom-fields'),
     'table_names' => [
         'custom_field_sections' => 'custom_field_sections',
         'custom_fields' => 'custom_fields',
         'custom_field_values' => 'custom_field_values',
         'custom_field_options' => 'custom_field_options',
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Column Names
-    |--------------------------------------------------------------------------
-    |
-    | Here you can customize the names of specific columns used by the package.
-    | For example, you can change the name of the tenant foreign key if needed.
-    |
-    */
     'column_names' => [
         'tenant_foreign_key' => 'tenant_id',
     ],
-];
+],
 ```
+
+## Configuration Examples
+
+### Restricting Field Types
+
+Limit available field types in production:
+
+```php
+'field_types' => [
+    'enabled' => [
+        'text',
+        'textarea', 
+        'number',
+        'select',
+        'checkbox',
+        'date',
+    ],
+    // Disable rich content editors in restricted environments
+    'disabled' => [
+        'rich_editor',
+        'markdown_editor',
+    ],
+],
+```
+
+### Multi-Entity Configuration
+
+Configure multiple entities with different capabilities:
+
+```php
+'entity_configuration' => EntityConfiguration::configure()
+    ->discover(app_path('Models'))
+    ->cache(env('CUSTOM_FIELDS_CACHE', true))
+    ->models([
+        // Blog posts with full features
+        EntityModel::for(\App\Models\Post::class)
+            ->label('Blog Post', 'Blog Posts')
+            ->icon('heroicon-o-document-text')
+            ->searchIn(['title', 'content', 'excerpt'])
+            ->features([EntityFeature::CUSTOM_FIELDS, EntityFeature::LOOKUP_SOURCE])
+            ->priority(10),
+            
+        // Products with custom fields only
+        EntityModel::for(\App\Models\Product::class)
+            ->label('Product', 'Products')
+            ->icon('heroicon-o-cube')
+            ->searchIn(['name', 'description', 'sku'])
+            ->features([EntityFeature::CUSTOM_FIELDS])
+            ->priority(20),
+            
+        // Users as lookup source only (no custom fields)
+        EntityModel::for(\App\Models\User::class)
+            ->label('User', 'Users')
+            ->icon('heroicon-o-user')
+            ->searchIn(['name', 'email'])
+            ->features([EntityFeature::LOOKUP_SOURCE])
+            ->priority(30),
+    ]),
+```
+
+### Development vs Production
+
+Use environment variables for flexible configuration:
+
+```php
+'features' => [
+    'conditional_visibility' => env('CUSTOM_FIELDS_CONDITIONAL_VISIBILITY', true),
+    'encryption' => env('CUSTOM_FIELDS_ENCRYPTION', true),
+    'select_option_colors' => env('CUSTOM_FIELDS_OPTION_COLORS', true),
+],
+
+'entity_configuration' => EntityConfiguration::configure()
+    ->discover(app_path('Models'))
+    ->cache(env('CUSTOM_FIELDS_CACHE_ENTITIES', !app()->isLocal()))
+    ->models([
+        // Configuration here
+    ]),
+```
+
+## Best Practices
+
+### Performance Optimization
+
+1. **Enable Entity Caching**: Always enable caching in production:
+   ```php
+   ->cache(env('CUSTOM_FIELDS_CACHE_ENTITIES', true))
+   ```
+
+2. **Restrict Field Types**: Only enable field types you actually use:
+   ```php
+   'field_types' => [
+       'enabled' => ['text', 'number', 'select', 'date'],
+   ],
+   ```
+
+3. **Configure Discovery Paths**: Limit discovery to specific directories:
+   ```php
+   ->discover([
+       app_path('Models'),
+       // Don't include vendor or other large directories
+   ])
+   ```
+
+### Security Considerations
+
+1. **Disable Unused Features**: Turn off features you don't need:
+   ```php
+   'features' => [
+       'encryption' => true,              // Keep for sensitive data
+       'conditional_visibility' => false, // Disable if not used
+   ],
+   ```
+
+2. **Restrict Field Types**: Disable potentially unsafe field types:
+   ```php
+   'field_types' => [
+       'disabled' => [
+           'rich_editor',     // Disable if XSS is a concern
+           'markdown_editor', // Disable if not needed
+       ],
+   ],
+   ```
+
+3. **Multi-Tenancy**: Always enable in multi-tenant applications:
+   ```php
+   'tenant_aware' => true,
+   ```

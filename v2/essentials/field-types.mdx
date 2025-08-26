@@ -8,7 +8,7 @@ Custom Fields v2 introduces a powerful, extensible field type system that allows
 
 ## Built-in Field Types
 
-Custom Fields v2 comes with 18 pre-configured field types:
+Custom Fields v2 comes with 18 pre-configured field types, each implementing a clean trait-based architecture for maximum flexibility:
 
 | Field Type | Key | Data Type | Description |
 |------------|-----|-----------|-------------|
@@ -254,9 +254,29 @@ class AppServiceProvider extends ServiceProvider
 
 ## Important Implementation Notes
 
-### Using Abstract Base Classes
+### Architecture: Interface + Traits (Not Abstract Classes)
 
-Custom Fields v2 provides abstract base classes that you **must** extend:
+Custom Fields v2 uses a **trait-based composition approach** rather than abstract base classes for maximum flexibility:
+
+- **Field Type Definition**: Implement `FieldTypeDefinitionInterface` (required contract)
+- **Common Defaults**: Use `HasCommonFieldProperties` trait (provides sensible defaults)
+- **Import/Export**: Optionally use `HasImportExportDefaults` trait and implement `FieldImportExportInterface`
+
+This composition-over-inheritance approach allows you to mix and match behaviors without the restrictions of single inheritance:
+
+```php
+class CustomFieldType implements FieldTypeDefinitionInterface
+{
+    use HasCommonFieldProperties; // Gets defaults for common methods
+    use HasImportExportDefaults;  // Optional: for custom import/export behavior
+    
+    // Only implement what's unique to your field type
+}
+```
+
+### Abstract Component Classes
+
+For the actual Filament components, you **must** extend the provided abstract classes:
 
 - **Form Components**: Extend `AbstractFormComponent` and implement the `create()` method
 - **Table Columns**: Extend `AbstractTableColumn` and implement the `make()` method  
@@ -266,32 +286,55 @@ These base classes provide essential functionality for integrating with the Cust
 
 ### Available Traits
 
-The `HasCommonFieldProperties` trait provides default implementations for:
+#### `HasCommonFieldProperties` Trait
 
-- `getTableFilterClass()` - Returns null by default
-- `isSearchable()` - Returns true by default
-- `isSortable()` - Returns true by default
-- `isFilterable()` - Returns false by default
-- `isEncryptable()` - Returns false by default
+This trait provides sensible default implementations for common field type methods:
+
+- `getTableFilterClass()` - Returns `null` by default (no filter)
+- `isSearchable()` - Returns `true` by default (most fields are searchable)
+- `isSortable()` - Returns `true` by default (most fields are sortable)
+- `isFilterable()` - Returns `false` by default (opt-in for filtering)
+- `isEncryptable()` - Returns `true` by default (most fields support encryption)
+- `getPriority()` - Returns `100` by default (neutral priority)
+- `allowedValidationRules()` - Returns `[]` by default (no specific validation rules)
+- `acceptsArbitraryValues()` - Returns `false` by default (requires predefined options)
+
+#### `HasImportExportDefaults` Trait
+
+This trait provides default implementations for import/export functionality:
+
+- `getImportExample()` - Returns `null` by default (system generates example based on data type)
+- `configureImportColumn()` - Empty by default (no additional configuration)
+- `transformExportValue()` - Returns value unchanged by default
+
+Use this trait when implementing `FieldImportExportInterface` for custom import/export behavior.
 
 ### Data Types
 
-Custom Fields supports these data types:
+Custom Fields supports these data types, each optimized for specific use cases:
 
 ```php
 enum FieldDataType: string
 {
-    case STRING = 'string';
-    case TEXT = 'text';
-    case NUMERIC = 'numeric';
-    case BOOLEAN = 'boolean';
-    case DATE = 'date';
-    case DATETIME = 'datetime';
-    case JSON = 'json';
+    case STRING = 'string';          // Short text, URLs, identifiers
+    case TEXT = 'text';              // Long text, rich content, markdown
+    case NUMERIC = 'numeric';        // Integers, counts
+    case FLOAT = 'float';            // Decimal numbers, currency
+    case DATE = 'date';              // Date only
+    case DATE_TIME = 'date_time';    // Date with time
+    case BOOLEAN = 'boolean';        // True/false, checkboxes, toggles
+    case SINGLE_CHOICE = 'single_choice';  // Select, radio buttons
+    case MULTI_CHOICE = 'multi_choice';    // Multi-select, checkbox lists, tags
 }
 ```
 
-Choose the appropriate data type based on how your field's values should be stored in the database.
+Each data type provides:
+- **Storage optimization** - Proper database column types and constraints
+- **Validation compatibility** - Specific validation rules that make sense for the data type
+- **Conditional visibility** - Compatible operators for visibility conditions
+- **Import/export handling** - Automatic value transformation during CSV operations
+
+Choose the appropriate data type based on how your field's values should be stored and handled.
 
 ### Field Type Priority
 
