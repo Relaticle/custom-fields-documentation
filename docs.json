@@ -36,15 +36,15 @@
           {
             "group": "Help & Support",
             "pages": [
-              "shared/support",
-              "shared/contributing"
+              "help-support/support",
+              "help-support/contributing"
             ]
           },
           {
             "group": "Legal & Acknowledgments",
             "pages": [
-              "shared/license",
-              "shared/code-distribution"
+              "legal-acknowledgments/license",
+              "legal-acknowledgments/code-distribution"
             ]
           }
         ]
@@ -73,15 +73,15 @@
           {
             "group": "Help & Support",
             "pages": [
-              "shared/support",
-              "shared/contributing"
+              "help-support/support",
+              "help-support/contributing"
             ]
           },
           {
             "group": "Legal & Acknowledgments",
             "pages": [
-              "shared/license",
-              "shared/code-distribution"
+              "legal-acknowledgments/license",
+              "legal-acknowledgments/code-distribution"
             ]
           }
         ]

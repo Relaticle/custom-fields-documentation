@@ -17,12 +17,12 @@ Documentation for the Filament Custom Fields plugin, supporting both v1 and v2 v
 │   ├── quickstart.mdx
 │   ├── upgrade.mdx       # v1 to v2 upgrade guide
 │   └── essentials/       # v2 configuration and features
-├── shared/             # Documentation shared between versions
-│   ├── concepts.mdx      # Core concepts
+├── help-support/       # Help and support documentation
 │   ├── support.mdx       # Support information
-│   ├── contributing.mdx  # Contribution guide
+│   └── contributing.mdx  # Contribution guide
+├── legal-acknowledgments/ # Legal and licensing documentation
 │   ├── license.mdx       # Licensing information
-│   └── code-distribution.mdx
+│   └── code-distribution.mdx # Code distribution info
 ├── images/             # Shared images
 ├── logo/               # Logo files
 └── docs.json           # Mintlify configuration with versioning
@@ -84,6 +84,6 @@ The documentation is automatically deployed when pushing to the main branch.
 
 When adding new documentation:
 1. Determine if it's version-specific or shared
-2. Place in appropriate directory (v1/, v2/, or shared/)
+2. Place in appropriate directory (v1/, v2/, help-support/, or legal-acknowledgments/)
 3. Update docs.json navigation if adding new pages
 4. Ensure version-specific features are clearly marked
