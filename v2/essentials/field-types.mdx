@@ -35,178 +35,111 @@ Custom Fields v2 comes with 18 pre-configured field types, each implementing a c
 
 You can extend Custom Fields by creating your own field types. This is useful when you need specialized functionality not covered by the built-in types.
 
-### Step 1: Create Your Field Type Class
+### Generate a Field Type
 
-Create a class that implements `FieldTypeDefinitionInterface`:
+Use the built-in command to create a new field type:
 
-```php
-namespace App\Filament\CustomFieldTypes\FieldTypes;
-
-use Relaticle\CustomFields\Contracts\FieldTypeDefinitionInterface;
-use Relaticle\CustomFields\Enums\FieldDataType;
-use Relaticle\CustomFields\Enums\ValidationRule;
-use Relaticle\CustomFields\FieldTypes\Concerns\HasCommonFieldProperties;
-
-class StarRatingFieldType implements FieldTypeDefinitionInterface
-{
-    use HasCommonFieldProperties; // Provides default implementations
-    
-    public function getKey(): string
-    {
-        return 'star-rating';
-    }
-    
-    public function getLabel(): string
-    {
-        return 'Star Rating';
-    }
-    
-    public function getIcon(): string
-    {
-        return 'mdi-star';
-    }
-    
-    public function getDataType(): FieldDataType
-    {
-        return FieldDataType::NUMERIC;
-    }
-    
-    public function getPriority(): int
-    {
-        return 45; // Lower numbers appear first
-    }
-    
-    public function getFormComponentClass(): string
-    {
-        return StarRatingFormComponent::class;
-    }
-    
-    public function getTableColumnClass(): string
-    {
-        return StarRatingColumn::class;
-    }
-    
-    public function getInfolistEntryClass(): string
-    {
-        return StarRatingEntry::class;
-    }
-    
-    public function allowedValidationRules(): array
-    {
-        return [
-            ValidationRule::REQUIRED,
-            ValidationRule::MIN,
-            ValidationRule::MAX,
-        ];
-    }
-}
+```bash
+php artisan make:field-type StarRating
 ```
 
-### Step 2: Create Form Component
+This creates a complete field type class with all necessary components.
 
-Create a form component that extends `AbstractFormComponent`:
+### Field Type Structure
+
+Custom field types extend `BaseFieldType` and use the modern `FieldTypeConfigurator` system:
 
 ```php
-namespace App\Filament\CustomFieldTypes\Components\Forms;
+namespace App\Filament\CustomFieldTypes;
 
-use Filament\Forms\Components\Field;
+use Closure;
 use Filament\Forms\Components\Select;
-use Relaticle\CustomFields\Filament\Integration\Base\AbstractFormComponent;
-use Relaticle\CustomFields\Models\CustomField;
-
-readonly class StarRatingFormComponent extends AbstractFormComponent
-{
-    public function create(CustomField $customField): Field
-    {
-        return Select::make($this->getFieldName($customField))
-            ->options([
-                1 => '⭐ Poor',
-                2 => '⭐⭐ Fair',
-                3 => '⭐⭐⭐ Good',
-                4 => '⭐⭐⭐⭐ Very Good',
-                5 => '⭐⭐⭐⭐⭐ Excellent',
-            ])
-            ->native(false)
-            ->searchable(false)
-            ->default(3);
-    }
-}
-```
-
-### Step 3: Create Table Column
-
-Create a table column that extends `AbstractTableColumn`:
-
-```php
-namespace App\Filament\CustomFieldTypes\Components\Tables;
-
-use Filament\Tables\Columns\Column;
-use Filament\Tables\Columns\TextColumn;
-use Relaticle\CustomFields\Filament\Integration\Base\AbstractTableColumn;
-use Relaticle\CustomFields\Models\CustomField;
-
-class StarRatingColumn extends AbstractTableColumn
-{
-    public function make(CustomField $customField): Column
-    {
-        return TextColumn::make($this->getFieldName($customField))
-            ->formatStateUsing(function ($state) {
-                if ($state === null) {
-                    return 'No rating';
-                }
-                
-                $rating = (int) $state;
-                $stars = str_repeat('⭐', $rating);
-                
-                return "$stars ($rating/5)";
-            })
-            ->html()
-            ->alignCenter();
-    }
-}
-```
-
-### Step 4: Create Infolist Entry
-
-Create an infolist entry that extends `AbstractInfolistEntry`:
-
-```php
-namespace App\Filament\CustomFieldTypes\Components\Infolists;
-
-use Filament\Infolists\Components\Entry;
 use Filament\Infolists\Components\TextEntry;
-use Relaticle\CustomFields\Filament\Integration\Base\AbstractInfolistEntry;
+use Filament\Tables\Columns\TextColumn;
+use Relaticle\CustomFields\Enums\ValidationRule;
+use Relaticle\CustomFields\FieldTypes\BaseFieldType;
+use Relaticle\CustomFields\FieldTypes\FieldTypeConfigurator;
 use Relaticle\CustomFields\Models\CustomField;
 
-class StarRatingEntry extends AbstractInfolistEntry
+/**
+ * Star Rating field type
+ */
+class StarRatingFieldType extends BaseFieldType
 {
-    public function make(CustomField $customField): Entry
+    public function configure(): FieldTypeConfigurator
     {
-        return TextEntry::make($this->getFieldName($customField))
-            ->label($customField->name)
-            ->formatStateUsing(function ($state) {
-                if ($state === null) {
-                    return 'No rating';
-                }
-                
-                $rating = (int) $state;
-                $stars = str_repeat('⭐', $rating);
-                $labels = [
-                    1 => 'Poor',
-                    2 => 'Fair',
-                    3 => 'Good',
-                    4 => 'Very Good',
-                    5 => 'Excellent',
-                ];
-                
-                return "$stars - {$labels[$rating]} ($rating/5)";
-            })
-            ->html();
+        return FieldTypeConfigurator::numeric()
+            ->key('star-rating')
+            ->label('Star Rating')
+            ->icon('heroicon-o-star')
+            ->formComponent($this->getFormComponent())
+            ->tableColumn($this->getTableColumn())
+            ->infolistEntry($this->getInfolistEntry())
+            ->priority(45)
+            ->validationRules([
+                ValidationRule::REQUIRED,
+                ValidationRule::MIN,
+                ValidationRule::MAX,
+            ])
+            ->searchable()
+            ->sortable()
+            ->filterable();
+    }
+
+    private function getFormComponent(): Closure
+    {
+        return function (CustomField $customField) {
+            return Select::make($customField->getFieldName())
+                ->label($customField->name)
+                ->options([
+                    1 => '⭐ Poor',
+                    2 => '⭐⭐ Fair', 
+                    3 => '⭐⭐⭐ Good',
+                    4 => '⭐⭐⭐⭐ Very Good',
+                    5 => '⭐⭐⭐⭐⭐ Excellent',
+                ])
+                ->native(false)
+                ->columnSpanFull();
+        };
+    }
+
+    private function getTableColumn(): Closure
+    {
+        return function (CustomField $customField) {
+            return TextColumn::make($customField->getFieldName())
+                ->label($customField->name)
+                ->formatStateUsing(function ($state) {
+                    if (!$state) return 'No rating';
+                    
+                    $rating = (int) $state;
+                    return str_repeat('⭐', $rating) . " ($rating/5)";
+                })
+                ->html()
+                ->sortable()
+                ->searchable();
+        };
+    }
+
+    private function getInfolistEntry(): Closure
+    {
+        return function (CustomField $customField) {
+            return TextEntry::make($customField->getFieldName())
+                ->label($customField->name)
+                ->formatStateUsing(function ($state) {
+                    if (!$state) return 'No rating provided';
+                    
+                    $rating = (int) $state;
+                    $labels = [1 => 'Poor', 2 => 'Fair', 3 => 'Good', 4 => 'Very Good', 5 => 'Excellent'];
+                    
+                    return str_repeat('⭐', $rating) . " - {$labels[$rating]} ($rating/5)";
+                })
+                ->html();
+        };
     }
 }
 ```
 
-### Step 5: Register Your Field Type
+### Register Your Field Type
 
 There are two ways to register your custom field type:
 
@@ -252,62 +185,106 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 
-## Important Implementation Notes
+## Field Type Configurators
 
-### Architecture: Interface + Traits (Not Abstract Classes)
+The `FieldTypeConfigurator` system provides a fluent API for defining field types. Choose the appropriate configurator based on your field's data type:
 
-Custom Fields v2 uses a **trait-based composition approach** rather than abstract base classes for maximum flexibility:
-
-- **Field Type Definition**: Implement `FieldTypeDefinitionInterface` (required contract)
-- **Common Defaults**: Use `HasCommonFieldProperties` trait (provides sensible defaults)
-- **Import/Export**: Optionally use `HasImportExportDefaults` trait and implement `FieldImportExportInterface`
-
-This composition-over-inheritance approach allows you to mix and match behaviors without the restrictions of single inheritance:
+### Available Configurators
 
 ```php
-class CustomFieldType implements FieldTypeDefinitionInterface
-{
-    use HasCommonFieldProperties; // Gets defaults for common methods
-    use HasImportExportDefaults;  // Optional: for custom import/export behavior
-    
-    // Only implement what's unique to your field type
-}
+// Text-based fields
+FieldTypeConfigurator::text()     // For STRING data type
+FieldTypeConfigurator::string()   // Alias for text()
+
+// Numeric fields  
+FieldTypeConfigurator::numeric()  // For NUMERIC data type
+FieldTypeConfigurator::float()    // For FLOAT data type
+
+// Date/time fields
+FieldTypeConfigurator::date()     // For DATE data type
+FieldTypeConfigurator::dateTime() // For DATE_TIME data type
+
+// Boolean fields
+FieldTypeConfigurator::boolean()  // For BOOLEAN data type
+
+// Choice fields
+FieldTypeConfigurator::singleChoice() // For SINGLE_CHOICE data type
+FieldTypeConfigurator::multiChoice()  // For MULTI_CHOICE data type
 ```
 
-### Abstract Component Classes
+### Component Types
 
-For the actual Filament components, you **must** extend the provided abstract classes:
+Field types support two approaches for defining components:
 
-- **Form Components**: Extend `AbstractFormComponent` and implement the `create()` method
-- **Table Columns**: Extend `AbstractTableColumn` and implement the `make()` method  
-- **Infolist Entries**: Extend `AbstractInfolistEntry` and implement the `make()` method
+#### 1. Class-Based Components (Simple)
 
-These base classes provide essential functionality for integrating with the Custom Fields system.
+For simple fields, reference Filament component classes directly:
 
-### Available Traits
+```php
+->formComponent(TextInput::class)
+->tableColumn(TextColumn::class)
+->infolistEntry(TextEntry::class)
+```
 
-#### `HasCommonFieldProperties` Trait
+#### 2. Closure-Based Components (Flexible)
 
-This trait provides sensible default implementations for common field type methods:
+For complex fields, use closures that return configured components:
 
-- `getTableFilterClass()` - Returns `null` by default (no filter)
-- `isSearchable()` - Returns `true` by default (most fields are searchable)
-- `isSortable()` - Returns `true` by default (most fields are sortable)
-- `isFilterable()` - Returns `false` by default (opt-in for filtering)
-- `isEncryptable()` - Returns `true` by default (most fields support encryption)
-- `getPriority()` - Returns `100` by default (neutral priority)
-- `allowedValidationRules()` - Returns `[]` by default (no specific validation rules)
-- `acceptsArbitraryValues()` - Returns `false` by default (requires predefined options)
+```php
+->formComponent($this->getFormComponent())
+->tableColumn($this->getTableColumn()) 
+->infolistEntry($this->getInfolistEntry())
+```
 
-#### `HasImportExportDefaults` Trait
+### Field Capabilities
 
-This trait provides default implementations for import/export functionality:
+Configure what your field type supports:
 
-- `getImportExample()` - Returns `null` by default (system generates example based on data type)
-- `configureImportColumn()` - Empty by default (no additional configuration)
-- `transformExportValue()` - Returns value unchanged by default
+```php
+->searchable()        // Enable table searching
+->sortable()          // Enable table sorting
+->filterable()        // Add table filter support
+->encryptable()       // Allow field encryption
+```
 
-Use this trait when implementing `FieldImportExportInterface` for custom import/export behavior.
+### Choice Field Option Handling
+
+Choice fields support different option sources:
+
+#### `->withoutUserOptions()`
+**Field type provides all options - no user customization**
+
+```php
+FieldTypeConfigurator::singleChoice() // or multiChoice()
+    ->withoutUserOptions() // Field controls options
+    ->formComponent($this->getFormComponent())
+```
+
+- **Effect**: Disables "Options" tab when creating fields
+- **Use Cases**: Built-in options, database lookups, fixed choices
+
+#### Default Behavior
+**Users define their own options**
+
+```php
+FieldTypeConfigurator::singleChoice() // or multiChoice()
+    // No ->withoutUserOptions() call
+    ->formComponent($this->getFormComponent())
+```
+
+- **Effect**: Shows "Options" tab when creating fields
+- **Use Cases**: Custom categories, user-specific selections
+
+#### `->withArbitraryValues()`
+**Accept both predefined and new typed values**
+
+```php
+FieldTypeConfigurator::multiChoice()
+    ->withArbitraryValues() // Accept new values
+    ->formComponent($this->getFormComponent())
+```
+
+- **Use Cases**: Tag inputs, flexible categorization
 
 ### Data Types
 
@@ -349,9 +326,104 @@ Field types are ordered by priority (lower numbers appear first):
 
 1. **Use Existing Filament Components**: Build on Filament's components like `Select`, `TextInput`, etc.
 2. **Follow Naming Conventions**: Use kebab-case for keys (e.g., `star-rating`, `country-select`)
-3. **Implement Only What You Need**: Use the `HasCommonFieldProperties` trait for defaults
-4. **Test Your Components**: Ensure your field type works in forms, tables, and infolists
-5. **Consider Validation**: Only allow validation rules that make sense for your field type
+3. **Use the Right Configurator**: Choose the configurator that matches your data type
+4. **Use Closures for Flexibility**: For complex components, use closure-based definitions
+5. **Test Your Components**: Ensure your field type works in forms, tables, and infolists
+6. **Consider Validation**: Only allow validation rules that make sense for your field type
+
+## Examples
+
+### Built-in Options (withoutUserOptions)
+
+Field type provides predefined options:
+
+```php
+public function configure(): FieldTypeConfigurator
+{
+    return FieldTypeConfigurator::singleChoice()
+        ->key('priority-level')
+        ->label('Priority Level')
+        ->icon('heroicon-o-flag')
+        ->withoutUserOptions() // Field provides options
+        ->formComponent($this->getFormComponent())
+        ->priority(50);
+}
+
+private function getFormComponent(): Closure
+{
+    return function (CustomField $customField) {
+        return Select::make($customField->getFieldName())
+            ->label($customField->name)
+            ->options([
+                1 => 'Low',
+                2 => 'Medium', 
+                3 => 'High',
+                4 => 'Critical',
+            ]);
+    };
+}
+```
+
+### User-Defined Options (default)
+
+Users define their own options when creating fields:
+
+```php
+public function configure(): FieldTypeConfigurator
+{
+    return FieldTypeConfigurator::multiChoice()
+        ->key('product-tags')
+        ->label('Product Tags')
+        ->icon('heroicon-o-tag')
+        // No ->withoutUserOptions() - users define options
+        ->formComponent($this->getFormComponent())
+        ->priority(50);
+}
+
+private function getFormComponent(): Closure
+{
+    return function (CustomField $customField) {
+        return CheckboxList::make($customField->getFieldName())
+            ->label($customField->name);
+            // Options automatically applied by the system
+    };
+}
+```
+
+### Dynamic Database Options
+
+Field with database-driven options:
+
+```php
+public function configure(): FieldTypeConfigurator
+{
+    return FieldTypeConfigurator::singleChoice()
+        ->key('customer-selector')
+        ->label('Customer Selector')
+        ->icon('heroicon-o-users')
+        ->withoutUserOptions() // Field provides dynamic options
+        ->formComponent($this->getFormComponent())
+        ->priority(50);
+}
+
+private function getFormComponent(): Closure
+{
+    return function (CustomField $customField) {
+        return Select::make($customField->getFieldName())
+            ->label($customField->name)
+            ->searchable()
+            ->getSearchResultsUsing(fn (string $search): array => 
+                Customer::where('name', 'like', "%{$search}%")
+                    ->limit(50)
+                    ->pluck('name', 'id')
+                    ->toArray()
+            )
+            ->getOptionLabelUsing(fn ($value): ?string => 
+                Customer::find($value)?->name
+            );
+    };
+}
+```
 
 ## Troubleshooting
 
@@ -359,18 +431,18 @@ Field types are ordered by priority (lower numbers appear first):
 
 If your custom field type doesn't appear in the dropdown:
 
-1. Ensure your field type class implements `FieldTypeDefinitionInterface`
+1. Ensure your field type class extends `BaseFieldType`
 2. Verify the field type is registered correctly
 3. Clear Laravel's cache: `php artisan cache:clear`
-4. Check that all required methods return valid values
+4. Check that all required configuration methods return valid values
 
 ### Components Not Rendering
 
 If your components don't render correctly:
 
-1. Verify you're extending the correct abstract classes
-2. Check that you're using the correct method names (`create()` for forms, `make()` for tables/infolists)
-3. Ensure you're using `$this->getFieldName($customField)` for the field name
-4. Test with simple Filament components first before adding complexity
+1. Verify you're using `$customField->getFieldName()` for field names
+2. For closure-based components, ensure closures return valid Filament components
+3. Test with simple components first before adding complexity
+4. Check that you're importing all necessary Filament component classes
 
 Your custom field type will now appear in the field type dropdown when creating new custom fields!
