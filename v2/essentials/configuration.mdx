@@ -5,11 +5,11 @@ icon: 'gear'
 
 ## Overriding Models
 
-The Custom Fields plugin allows you to replace the default models with your own custom implementations.
+The Custom Fields package allows you to replace the default models with your own implementations.
 
 ### Registering Custom Models
 
-Register your custom models in a service provider:
+Register your custom models using the `CustomFields` class:
 
 ```php
 use Relaticle\CustomFields\CustomFields;
@@ -18,7 +18,6 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        // Register your custom models
         CustomFields::useCustomFieldModel(YourCustomField::class);
         CustomFields::useValueModel(YourCustomFieldValue::class);
         CustomFields::useOptionModel(YourCustomFieldOption::class);
@@ -27,123 +26,51 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 
-### Creating Custom Models
-
-Extend the base models:
-
-```php
-namespace App\Models;
-
-use Relaticle\CustomFields\Models\CustomField as BaseCustomField;
-
-class YourCustomField extends BaseCustomField
-{
-    // Add custom functionality
-    public function someCustomMethod()
-    {
-        // Your implementation
-    }
-    
-    // Override methods if needed
-    public function getNameAttribute($value)
-    {
-        return ucfirst($value);
-    }
-}
-```
-
-### Accessing Custom Models
-
-Use the helper methods:
-
-```php
-// Get model class names
-$customFieldClass = CustomFields::customFieldModel();
-
-// Create new instances
-$customField = CustomFields::newCustomFieldModel();
-$value = CustomFields::newValueModel();
-$option = CustomFields::newOptionModel();
-$section = CustomFields::newSectionModel();
-```
 
 ## Configuration File
 
-The configuration file (`config/custom-fields.php`) allows you to customize various aspects of the plugin. Custom Fields v2 introduces a cleaner, more organized configuration structure.
+The configuration file (`config/custom-fields.php`) allows you to customize all aspects of the Custom Fields package. It uses modern fluent configurators for type safety and better IDE support.
 
 ### Entity Configuration
 
-The most important section configures which models can use custom fields:
+Configure which models can have custom fields:
 
 ```php
-'entity_configuration' => EntityConfiguration::configure()
-    ->discover(app_path('Models'))  // Auto-discover models
-    ->cache(true)                   // Cache for performance
-    ->models([
-        // Explicit entity configurations with full control
-        EntityModel::for(\App\Models\Post::class)
-            ->label('Blog Post', 'Blog Posts')
-            ->icon('heroicon-o-document-text')
-            ->searchIn(['title', 'content'])
-            ->features([EntityFeature::CUSTOM_FIELDS, EntityFeature::LOOKUP_SOURCE])
-            ->priority(10),
-    ]),
-```
-
-### Features Configuration
-
-Control which features are enabled:
-
-```php
-'features' => [
-    'conditional_visibility' => true,  // Show/hide fields based on conditions
-    'encryption' => true,              // Enable field encryption
-    'select_option_colors' => true,    // Color options for select fields
-],
+'entity_configuration' => EntityConfigurator::configure()
+    ->discover(app_path('Models'))  // Auto-discover models in this path
+    ->cache(true),                  // Enable caching for performance
 ```
 
 ### Field Types Configuration
 
-Configure which field types are available and their behavior:
+Control which field types are available:
 
 ```php
-'field_types' => [
-    'enabled' => [
-        // Empty array = all field types enabled (default)
-        // Specify field type keys to allow only those types:
-        // 'text', 'textarea', 'select', 'checkbox', 'number', 'date'
-    ],
-    'disabled' => [
-        // Specify field type keys to disable:
-        // 'rich_editor', 'markdown_editor'
-    ],
-    'configuration' => [
-        'date' => [
-            'native' => false,
-            'format' => 'Y-m-d',
-            'display_format' => null,
-        ],
-        'date_time' => [
-            'native' => false,
-            'format' => 'Y-m-d H:i:s',
-            'display_format' => null,
-        ],
-    ],
-],
+'field_type_configuration' => FieldTypeConfigurator::configure()
+    ->enabled([])                   // Empty = all enabled
+    ->disabled(['file-upload'])     // Disable specific field types
+    ->discover(true)                // Auto-discover custom field types
+    ->cache(enabled: false, ttl: 3400),
 ```
 
-### Resource Configuration
+### Features Configuration
 
-Customize how custom fields appear in Filament tables:
+Configure package features using the enum-based system:
 
 ```php
-'resource' => [
-    'table' => [
-        'columns' => true,              // Show custom field columns
-        'columns_toggleable' => true,   // Allow users to toggle columns
-        'filters' => true,              // Show custom field filters
-    ],
-],
+'features' => FeatureConfigurator::configure()
+    ->enable(
+        CustomFieldsFeature::FIELD_CONDITIONAL_VISIBILITY,
+        CustomFieldsFeature::FIELD_ENCRYPTION,
+        CustomFieldsFeature::FIELD_OPTION_COLORS,
+        CustomFieldsFeature::UI_TABLE_COLUMNS,
+        CustomFieldsFeature::UI_TOGGLEABLE_COLUMNS,
+        CustomFieldsFeature::UI_TABLE_FILTERS,
+        CustomFieldsFeature::SYSTEM_MANAGEMENT_INTERFACE
+    )
+    ->disable(
+        CustomFieldsFeature::SYSTEM_MULTI_TENANCY
+    ),
 ```
 
 ### Management Interface
@@ -152,7 +79,6 @@ Configure the custom fields management page:
 
 ```php
 'management' => [
-    'enabled' => true,              // Enable the management interface
     'slug' => 'custom-fields',      // URL slug
     'navigation_sort' => -1,        // Navigation sort order
     'navigation_group' => true,     // Group in navigation
@@ -160,17 +86,9 @@ Configure the custom fields management page:
 ],
 ```
 
-### Multi-Tenancy
-
-Enable tenant isolation:
-
-```php
-'tenant_aware' => false,  // Set to true to enable multi-tenancy
-```
-
 ### Database Configuration
 
-Customize table and column names:
+Customize table names and paths:
 
 ```php
 'database' => [
@@ -187,6 +105,45 @@ Customize table and column names:
 ],
 ```
 
+## Available Features
+
+The package supports these features that can be enabled/disabled:
+
+| Feature | Description |
+|---------|-------------|
+| `FIELD_CONDITIONAL_VISIBILITY` | Show/hide fields based on conditions |
+| `FIELD_ENCRYPTION` | Encrypt sensitive field values |
+| `FIELD_OPTION_COLORS` | Color-coded options for select fields |
+| `UI_TABLE_COLUMNS` | Show custom fields as table columns |
+| `UI_TOGGLEABLE_COLUMNS` | Allow users to toggle column visibility |
+| `UI_TABLE_FILTERS` | Enable filtering by custom field values |
+| `SYSTEM_MANAGEMENT_INTERFACE` | Enable the management interface |
+| `SYSTEM_MULTI_TENANCY` | Enable multi-tenant isolation |
+
+## Overriding Models
+
+The Custom Fields package allows you to replace the default models with your own implementations.
+
+### Registering Custom Models
+
+Register your custom models using the `CustomFields` class:
+
+```php
+use Relaticle\CustomFields\CustomFields;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function boot()
+    {
+        CustomFields::useCustomFieldModel(YourCustomField::class);
+        CustomFields::useValueModel(YourCustomFieldValue::class);
+        CustomFields::useOptionModel(YourCustomFieldOption::class);
+        CustomFields::useSectionModel(YourCustomFieldSection::class);
+    }
+}
+```
+
+
 ## Configuration Examples
 
 ### Restricting Field Types
@@ -194,122 +151,96 @@ Customize table and column names:
 Limit available field types in production:
 
 ```php
-'field_types' => [
-    'enabled' => [
+'field_type_configuration' => FieldTypeConfigurator::configure()
+    ->enabled([
         'text',
         'textarea', 
         'number',
         'select',
         'checkbox',
         'date',
-    ],
-    // Disable rich content editors in restricted environments
-    'disabled' => [
-        'rich_editor',
-        'markdown_editor',
+    ])
+    ->disabled([
+        'rich-editor',      // Disable rich content editors
+        'markdown-editor',  // Disable markdown editor
+        'file-upload',      // Disable file uploads
+    ]),
+```
+
+### Performance Configuration
+
+Optimize for production:
+
+```php
+'entity_configuration' => EntityConfigurator::configure()
+    ->discover(app_path('Models'))
+    ->cache(env('CUSTOM_FIELDS_CACHE', true)),  // Enable caching
+
+'field_type_configuration' => FieldTypeConfigurator::configure()
+    ->cache(enabled: true, ttl: 3600),          // Cache field types
+```
+
+### Multi-Tenancy Setup
+
+Enable tenant isolation:
+
+```php
+'features' => FeatureConfigurator::configure()
+    ->enable(
+        CustomFieldsFeature::SYSTEM_MULTI_TENANCY,
+        // ... other features
+    ),
+
+'database' => [
+    // ... other config
+    'column_names' => [
+        'tenant_foreign_key' => 'tenant_id',  // Your tenant foreign key
     ],
 ],
 ```
 
-### Multi-Entity Configuration
+### Minimal Configuration
 
-Configure multiple entities with different capabilities:
-
-```php
-'entity_configuration' => EntityConfiguration::configure()
-    ->discover(app_path('Models'))
-    ->cache(env('CUSTOM_FIELDS_CACHE', true))
-    ->models([
-        // Blog posts with full features
-        EntityModel::for(\App\Models\Post::class)
-            ->label('Blog Post', 'Blog Posts')
-            ->icon('heroicon-o-document-text')
-            ->searchIn(['title', 'content', 'excerpt'])
-            ->features([EntityFeature::CUSTOM_FIELDS, EntityFeature::LOOKUP_SOURCE])
-            ->priority(10),
-            
-        // Products with custom fields only
-        EntityModel::for(\App\Models\Product::class)
-            ->label('Product', 'Products')
-            ->icon('heroicon-o-cube')
-            ->searchIn(['name', 'description', 'sku'])
-            ->features([EntityFeature::CUSTOM_FIELDS])
-            ->priority(20),
-            
-        // Users as lookup source only (no custom fields)
-        EntityModel::for(\App\Models\User::class)
-            ->label('User', 'Users')
-            ->icon('heroicon-o-user')
-            ->searchIn(['name', 'email'])
-            ->features([EntityFeature::LOOKUP_SOURCE])
-            ->priority(30),
-    ]),
-```
-
-### Development vs Production
-
-Use environment variables for flexible configuration:
+For a simple setup with basic features:
 
 ```php
-'features' => [
-    'conditional_visibility' => env('CUSTOM_FIELDS_CONDITIONAL_VISIBILITY', true),
-    'encryption' => env('CUSTOM_FIELDS_ENCRYPTION', true),
-    'select_option_colors' => env('CUSTOM_FIELDS_OPTION_COLORS', true),
-],
-
-'entity_configuration' => EntityConfiguration::configure()
+'entity_configuration' => EntityConfigurator::configure()
     ->discover(app_path('Models'))
-    ->cache(env('CUSTOM_FIELDS_CACHE_ENTITIES', !app()->isLocal()))
-    ->models([
-        // Configuration here
-    ]),
+    ->cache(true),
+
+'field_type_configuration' => FieldTypeConfigurator::configure()
+    ->enabled(['text', 'textarea', 'number', 'select', 'checkbox', 'date']),
+
+'features' => FeatureConfigurator::configure()
+    ->enable(
+        CustomFieldsFeature::UI_TABLE_COLUMNS,
+        CustomFieldsFeature::SYSTEM_MANAGEMENT_INTERFACE
+    ),
 ```
 
 ## Best Practices
 
 ### Performance Optimization
 
-1. **Enable Entity Caching**: Always enable caching in production:
-   ```php
-   ->cache(env('CUSTOM_FIELDS_CACHE_ENTITIES', true))
-   ```
-
-2. **Restrict Field Types**: Only enable field types you actually use:
-   ```php
-   'field_types' => [
-       'enabled' => ['text', 'number', 'select', 'date'],
-   ],
-   ```
-
-3. **Configure Discovery Paths**: Limit discovery to specific directories:
-   ```php
-   ->discover([
-       app_path('Models'),
-       // Don't include vendor or other large directories
-   ])
-   ```
+1. **Enable Caching**: Always enable caching in production
+2. **Limit Discovery**: Only discover models you need
+3. **Restrict Field Types**: Only enable field types you use
 
 ### Security Considerations
 
-1. **Disable Unused Features**: Turn off features you don't need:
-   ```php
-   'features' => [
-       'encryption' => true,              // Keep for sensitive data
-       'conditional_visibility' => false, // Disable if not used
-   ],
-   ```
+1. **Disable Unused Features**: Turn off features you don't need
+2. **Restrict Field Types**: Disable potentially unsafe field types like rich editors
+3. **Enable Multi-Tenancy**: Always enable in multi-tenant applications
 
-2. **Restrict Field Types**: Disable potentially unsafe field types:
-   ```php
-   'field_types' => [
-       'disabled' => [
-           'rich_editor',     // Disable if XSS is a concern
-           'markdown_editor', // Disable if not needed
-       ],
-   ],
-   ```
+### Development vs Production
 
-3. **Multi-Tenancy**: Always enable in multi-tenant applications:
-   ```php
-   'tenant_aware' => true,
-   ```
+Use environment variables for flexible configuration:
+
+```php
+'entity_configuration' => EntityConfigurator::configure()
+    ->discover(app_path('Models'))
+    ->cache(env('CUSTOM_FIELDS_CACHE', !app()->isLocal())),
+
+'field_type_configuration' => FieldTypeConfigurator::configure()
+    ->cache(enabled: env('CUSTOM_FIELDS_CACHE_TYPES', true)),
+```
