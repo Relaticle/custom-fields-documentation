@@ -1,49 +1,28 @@
 ---
-title: Custom Fields v2 - Enhanced Dynamic Fields for Filament
+title: Custom Fields v2 - Dynamic Fields Without Migrations
 sidebarTitle: 'Introduction'
-description: 'Version 2 brings improved performance, better UX, and more field types to Custom Fields'
+description: 'Add dynamic custom fields to your Filament admin panels without writing database migrations'
 icon: 'house'
 ---
 
-## What's New in Version 2
+## Stop Writing Migrations for Custom Fields
 
-Custom Fields v2 is a major upgrade that brings significant improvements while maintaining the core philosophy: **no more migrations for custom fields**. This version introduces enhanced performance, better developer experience, and more powerful field types.
+**Custom Fields eliminates the migration cycle** for user-defined form fields in your Filament admin panels. Users can now create and manage dynamic fields directly through the admin interface - no developer intervention required.
 
-### Key Improvements
-- **50% faster field rendering** with optimized caching
-- **New field types**: JSON, Rich Editor, Code Editor
-- **Better validation** with custom rule builders
-- **Improved UI/UX** with drag-and-drop field ordering
-- **TypeScript support** for better IDE integration
-- **Backward compatible** upgrade path from v1
+<Info>
+**Dual Licensing Model** • Custom Fields is available under both AGPL-3.0 (open source) and commercial licenses to meet different project needs. [Learn about your licensing options](#licensing-options).
+</Info>
 
-<Frame>
-  <iframe width="100%" height="315" src="https://www.youtube.com/embed/6iVfeS7VixA?si=3L8H22mbMayEuHs8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-</Frame>
+### The Problem You Know Too Well
 
-## Open Source with Dual Licensing
+Every new field request becomes a development bottleneck:
+1. Write and test a migration
+2. Coordinate deployments
+3. Hope nothing breaks in production
+4. Repeat for every field change
 
-Custom Fields is now open source under AGPL-3.0, with commercial licenses available for proprietary projects.
+### The Two-Line Solution
 
-<CardGroup cols={2}>
-  <Card title="Open Source (AGPL-3.0)" icon="code-branch">
-    Free for open source projects, non-profits, and education
-  </Card>
-  <Card title="Commercial License" icon="building">
-    For closed-source applications
-  </Card>
-</CardGroup>
-
-## The Traditional Way vs. Custom Fields
-
-### Before: The Migration Cycle
-Every new field request means:
-1. Writing a migration
-2. Testing database changes
-3. Coordinating deployments
-4. Hoping nothing breaks in production
-
-### After: Two Lines of Code
 ```php
 // 1. Add to your model
 class Product extends Model implements HasCustomFields
@@ -61,67 +40,127 @@ public function form(Schema $schema): Schema
 }
 ```
 
-**That's it.** Your users can now add unlimited custom fields through the admin panel - no migrations, no deployments, no developer intervention.
+**That's it.** Users can now create, modify, and organize fields through the admin panel without any database changes.
 
-## Why Custom Fields Works
+<Frame>
+  <iframe width="100%" height="315" src="https://www.youtube.com/embed/6iVfeS7VixA?si=3L8H22mbMayEuHs8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</Frame>
 
-### For Developers
-- **Zero migrations** - Add fields dynamically without touching your database schema
-- **Full Filament integration** - Works seamlessly with forms, tables, and infolists
-- **20+ field types** - From simple text to rich editors and date pickers
-- **Type-safe validation** - Built-in Laravel validation with custom rules
+## What's New in Version 2
 
-### For End Users
-- **Self-service** - Create their own fields without developer intervention
-- **Intuitive UI** - Drag-and-drop ordering and section management
-- **Data management** - Built-in CSV import/export capabilities
+This major upgrade delivers significant performance improvements while maintaining the core philosophy of migration-free custom fields.
 
-## Key Features
+### Performance & Developer Experience
+- **50% faster field rendering** with intelligent caching
+- **TypeScript support** for enhanced IDE integration
+- **Backward compatible** upgrade path from v1
+- **Enhanced debugging tools** for easier troubleshooting
+
+### New Field Types & Capabilities
+- **Rich content**: JSON, Rich Editor, Code Editor, Markdown
+- **Advanced validation** with custom rule builders
+- **Improved UI/UX** with drag-and-drop field ordering
+- **Field encryption** for sensitive data
+
+## Licensing Options
 
 <CardGroup cols={2}>
-  <Card title="Multi-tenancy Ready">
-    Complete tenant isolation with automatic scoping
+  <Card title="Open Source (AGPL-3.0)" icon="code-branch" color="#10B981">
+    **Suitable for:**
+    - Open source projects
+    - Educational purposes
+    - Non-profit organizations
+    
+    **Requirements:** Entire application must be AGPL-3.0 compatible
   </Card>
-  <Card title="Field Encryption">
-    Optional encryption for sensitive text fields
-  </Card>
-  <Card title="Comprehensive Validation">
-    Built-in Laravel validation rules per field type
-  </Card>
-  <Card title="Import/Export Ready">
-    Built-in CSV capabilities for data management
+  <Card title="Commercial License" icon="building" color="#6B7280">
+    **Suitable for:**
+    - Proprietary applications
+    - Client projects
+    - SaaS platforms
+    
+    **Benefits:** Keep your source code private
   </Card>
 </CardGroup>
 
-## Available Field Types
+<Note>
+**Choosing a License:** Review your project requirements to determine which license best fits your use case. Detailed license information is available in our [licensing documentation](/legal-acknowledgments/license).
+</Note>
+
+## Core Benefits
+
+<CardGroup cols={2}>
+  <Card title="For Developers" icon="code">
+    - **Zero migrations** for custom fields
+    - **Full Filament integration** 
+    - **20+ field types** included
+    - **Type-safe validation** built-in
+  </Card>
+  <Card title="For End Users" icon="users">
+    - **Self-service** field creation
+    - **Drag-and-drop** field ordering
+    - **CSV import/export** built-in
+    - **Intuitive management** interface
+  </Card>
+</CardGroup>
+
+## Enterprise-Ready Features
+
+<CardGroup cols={2}>
+  <Card title="Multi-Tenant Architecture" icon="building">
+    Complete tenant isolation with automatic scoping for SaaS applications
+  </Card>
+  <Card title="Data Security" icon="shield-check">
+    Optional field-level encryption for sensitive information
+  </Card>
+  <Card title="Advanced Validation" icon="check-double">
+    Built-in Laravel validation with custom rules per field type
+  </Card>
+  <Card title="Data Management" icon="database">
+    Built-in CSV import/export capabilities for bulk operations
+  </Card>
+</CardGroup>
+
+## 20+ Built-in Field Types
 
 <Tabs>
-  <Tab title="Text Fields">
-    - Text
-    - Number
-    - Currency
-    - Link
-    - Textarea
-    - Rich Editor
-    - Markdown Editor
+  <Tab title="Text & Content">
+    - **Text** - Single line input
+    - **Number** - Numeric validation
+    - **Currency** - Formatted monetary values
+    - **Link** - URL validation and formatting
+    - **Textarea** - Multi-line text input
+    - **Rich Editor** - WYSIWYG content creation
+    - **Markdown Editor** - Markdown with live preview
   </Tab>
-  <Tab title="Selection Fields">
-    - Select
-    - Multi-select
-    - Radio
-    - Checkbox
-    - Checkbox List
-    - Toggle
-    - Toggle Buttons
+  <Tab title="Selection & Choice">
+    - **Select** - Dropdown selection
+    - **Multi-select** - Multiple choice dropdown
+    - **Radio** - Single choice buttons
+    - **Checkbox** - Boolean toggle
+    - **Checkbox List** - Multiple checkboxes
+    - **Toggle** - Switch interface
+    - **Toggle Buttons** - Button group selection
   </Tab>
-  <Tab title="Special Fields">
-    - Date
-    - Date & Time
-    - Color Picker
-    - Tags Input
+  <Tab title="Date & Special">
+    - **Date** - Date picker with validation
+    - **Date & Time** - Full datetime selection
+    - **Color Picker** - Visual color selection
+    - **Tags Input** - Dynamic tag creation
   </Tab>
 </Tabs>
 
-<Note>
-**Need a commercial license?** See our [licensing options](/legal-acknowledgments/license) for closed-source projects.
-</Note>
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/v2/quickstart">
+    Get Custom Fields running in your project with our step-by-step guide
+  </Card>
+  <Card title="Licensing Guide" icon="scale-balanced" href="/legal-acknowledgments/license">
+    Complete licensing information and pricing details
+  </Card>
+</CardGroup>
+
+<Info>
+**Important:** AGPL-3.0 requires source code disclosure for all applications, including web services. Commercial licenses allow private development.
+</Info>

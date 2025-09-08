@@ -211,39 +211,38 @@ The main change in v2 is the move from component-based integration to a fluent b
     </Tab>
 </Tabs>
 
-### 4. Configuration Updates (Optional)
+### 4. Configuration Updates (Required)
 
-Custom Fields v2 introduces improved field type management. If you have custom field types or specific field configurations, review your `config/custom-fields.php`:
+Custom Fields v2 introduces improved field type management using fluent configurators. You **must** update your `config/custom-fields.php` to use the new configuration format:
 
 ```php
-'field_types' => [
-    'enabled' => [
-        // Empty array = all field types enabled (default)
-        // Specify field type keys to allow only those types:
-        // 'text', 'textarea', 'select', 'checkbox', 'number', 'date'
-    ],
-    'disabled' => [
-        // Specify field type keys to disable:
-        // 'rich_editor', 'markdown_editor'
-    ],
-],
+'field_type_configuration' => FieldTypeConfigurator::configure()
+    ->enabled([])                   // Empty = all enabled
+    ->disabled(['rich-editor'])     // Disable specific field types
+    ->discover(true)
+    ->cache(enabled: false, ttl: 3400),
 ```
 
 ### 5. Field Type Architecture Changes
 
-Custom Fields v2 now uses trait-based composition for field types instead of abstract base classes. If you have custom field types:
+Custom Fields v2 now uses `BaseFieldType` with `FieldSchema` for cleaner field type definitions. If you have custom field types, update them:
 
-- **Interface**: Your field types should implement `FieldTypeDefinitionInterface` (unchanged)
-- **Traits**: Use `HasCommonFieldProperties` and optionally `HasImportExportDefaults` 
-- **Benefits**: More flexible composition, easier to extend with new behaviors
+- **Base Class**: Extend `BaseFieldType` (instead of implementing interface directly)
+- **Configuration**: Return `FieldSchema` from `configure()` method
+- **Benefits**: Less boilerplate, better type safety, cleaner API
 
 ```php
-class CustomFieldType implements FieldTypeDefinitionInterface
+class CustomFieldType extends BaseFieldType
 {
-    use HasCommonFieldProperties; // Gets sensible defaults
-    use HasImportExportDefaults;  // Optional: for import/export
-    
-    // Only implement what's unique to your field type
+    public function configure(): FieldSchema
+    {
+        return FieldSchema::string()
+            ->key('custom-field')
+            ->label('Custom Field')
+            ->icon('heroicon-o-star')
+            ->formComponent(TextInput::class)
+            ->priority(50);
+    }
 }
 ```
 
