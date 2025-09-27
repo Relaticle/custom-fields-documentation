@@ -1,6 +1,6 @@
 ---
 title: 'Import/Export'
-description: 'Description of your new file.'
+description: 'Learn how to import and export custom field data with Filament's import/export actions.'
 icon: 'file-export'
 ---
 
@@ -8,16 +8,13 @@ The Custom Fields plugin provides robust import and export capabilities for hand
 
 ## Import Implementation
 
-### Set Up the Importer
-
 ```php
 namespace App\Filament\Imports;
 
 use App\Models\Product;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
-use Filament\Facades\Filament;
-use Relaticle\CustomFields\Filament\Imports\CustomFieldsImporter;
+use Relaticle\CustomFields\Facades\CustomFields;
 
 class ProductImporter extends Importer
 {
@@ -31,63 +28,20 @@ class ProductImporter extends Importer
             ImportColumn::make('name')->requiredMapping()->rules(['required']),
             ImportColumn::make('price')->numeric(),
             
-            // Add all custom fields automatically
-            ...app(CustomFieldsImporter::class)->getColumns(self::getModel()),
+            // Add all custom fields
+            ...CustomFields::importer()->forModel(self::getModel())->columns(),
         ];
-    }
-    
-    // Before filling model with data, remove custom fields
-    protected function beforeFill(): void
-    {
-        $this->data = app(CustomFieldsImporter::class)->filterCustomFieldsFromData($this->data);
     }
     
     // After saving model, save custom fields
     protected function afterSave(): void
     {
-        // Get the tenant if using multi-tenancy
-        $tenant = Filament::getTenant();
-        
-        app(CustomFieldsImporter::class)->saveCustomFieldValues(
-            $this->record,           // The model instance
-            $this->getOriginalData(), // Original data with custom fields
-            $tenant                  // Optional: tenant for multi-tenancy
-        );
+        CustomFields::importer()->forModel($this->record)->saveValues();
     }
 }
 ```
 
-### Add Import Action to Your Resource
-
-```php
-use Filament\Actions\ImportAction;
-use App\Filament\Imports\ProductImporter;
-
-// In your resource class
-public static function getActions(): array
-{
-    return [
-        ImportAction::make()
-            ->importer(ProductImporter::class),
-    ];
-}
-```
-
-### Selective Custom Fields
-
-Only include specific custom fields:
-
-```php
-// Import specific fields only
-...app(CustomFieldsImporter::class)->getColumnsByFieldCodes(
-    self::getModel(), 
-    ['product_color', 'product_size']
-),
-```
-
 ## Export Implementation
-
-### Set Up the Exporter
 
 ```php
 namespace App\Filament\Exports;
@@ -95,7 +49,7 @@ namespace App\Filament\Exports;
 use App\Models\Product;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
-use Relaticle\CustomFields\Filament\Exports\CustomFieldsExporter;
+use Relaticle\CustomFields\Facades\CustomFields;
 
 class ProductExporter extends Exporter
 {
@@ -109,25 +63,9 @@ class ProductExporter extends Exporter
             ExportColumn::make('name'),
             ExportColumn::make('price'),
             
-            // Add all custom fields automatically
-            ...CustomFieldsExporter::getColumns(self::getModel()),
+            // Add all custom fields
+            ...CustomFields::exporter()->forModel(self::getModel())->columns(),
         ];
     }
-}
-```
-
-### Add Export Action to Your Resource
-
-```php
-use Filament\Actions\ExportAction;
-use App\Filament\Exports\ProductExporter;
-
-// In your resource class
-public static function getActions(): array
-{
-    return [
-        ExportAction::make()
-            ->exporter(ProductExporter::class),
-    ];
 }
 ```
