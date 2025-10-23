@@ -56,6 +56,22 @@ Choose your installation method based on your license type:
         php artisan custom-fields:install
         ```
       </Step>
+
+      <Step title="Include CSS assets">
+        <Note>
+            You need a custom Filament theme to include the Custom Fields styles.
+
+        If you haven't set up a custom theme for Filament, follow the [Filament Docs](https://filamentphp.com/docs/4.x/panels/themes#creating-a-custom-theme) first.
+        </Note>
+
+        Once you have a custom Filament theme set up, add the plugin's views to your theme CSS file:
+
+        **`resources/css/filament/admin/theme.css`**
+
+        ```css
+        @source '../../../../vendor/relaticle/custom-fields/resources';
+        ```
+      </Step>
     </Steps>
 
     <Note>
@@ -76,17 +92,37 @@ Choose your installation method based on your license type:
 
     ### For open source projects
 
-    Install directly from Packagist:
+    <Steps>
+      <Step title="Install the package">
+        Install directly from Packagist:
 
-    ```bash
-    composer require relaticle/custom-fields:^2.0
-    ```
+        ```bash
+        composer require relaticle/custom-fields:^2.0
+        ```
+      </Step>
 
-    Then run the installer:
+      <Step title="Run the installer">
+        ```bash
+        php artisan custom-fields:install
+        ```
+      </Step>
 
-    ```bash
-    php artisan custom-fields:install
-    ```
+      <Step title="Include CSS assets">
+        <Note>
+        You need a custom Filament theme to include the Custom Fields styles.
+
+        If you haven't set up a custom theme for Filament, follow the [Filament Docs](https://filamentphp.com/docs/4.x/panels/themes#creating-a-custom-theme) first.
+        </Note>
+
+        Once you have a custom Filament theme set up, add the plugin's views to your theme CSS file:
+
+        **`resources/css/filament/admin/theme.css`**
+
+        ```css
+        @source '../../../../vendor/relaticle/custom-fields/resources';
+        ```
+      </Step>
+    </Steps>
 
   </Tab>
 </Tabs>
