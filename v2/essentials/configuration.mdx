@@ -143,6 +143,10 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 
+<Note>
+If your custom models include tenant-specific scoping logic, you'll need to register a [custom tenant resolver](#custom-tenant-resolution) to ensure validation works correctly.
+</Note>
+
 
 ## Configuration Examples
 
@@ -199,24 +203,37 @@ Enable tenant isolation:
 ],
 ```
 
-### Minimal Configuration
+#### Custom Tenant Resolution
 
-For a simple setup with basic features:
+If you've extended the `CustomField` or `CustomFieldSection` models with custom tenant handling (e.g., custom global scopes), register a tenant resolver to ensure validation and queries respect your custom logic:
 
 ```php
-'entity_configuration' => EntityConfigurator::configure()
-    ->discover(app_path('Models'))
-    ->cache(true),
+use Relaticle\CustomFields\CustomFields;
 
-'field_type_configuration' => FieldTypeConfigurator::configure()
-    ->enabled(['text', 'textarea', 'number', 'select', 'checkbox', 'date']),
-
-'features' => FeatureConfigurator::configure()
-    ->enable(
-        CustomFieldsFeature::UI_TABLE_COLUMNS,
-        CustomFieldsFeature::SYSTEM_MANAGEMENT_INTERFACE
-    ),
+// In your AppServiceProvider or plugin boot method
+CustomFields::resolveTenantUsing(fn() => auth()->user()?->company_id);
 ```
+
+<Tip>
+The custom resolver takes priority over Filament's built-in tenancy, giving you complete control over tenant resolution.
+</Tip>
+
+**Common Patterns:**
+
+```php
+// Auth-based tenancy
+CustomFields::resolveTenantUsing(fn() => auth()->user()?->company_id);
+
+// Header-based (APIs)
+CustomFields::resolveTenantUsing(fn() => request()->header('X-Tenant-ID'));
+
+// Session-based
+CustomFields::resolveTenantUsing(fn() => session('current_tenant_id'));
+```
+
+<Tip>
+Need help? Check that your resolver returns the correct tenant ID using `TenantContextService::getCurrentTenantId()` in your application.
+</Tip>
 
 ## Best Practices
 
