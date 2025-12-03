@@ -269,13 +269,14 @@ CustomFields::form()
     ->forModel($record)
     ->except(['field_code']) // Exclude specific fields
     ->only(['field_code']) // Include only specific fields
+    ->withoutSections() // Render fields without section wrappers
     ->build()
 
 // Tables - returns collections
 CustomFields::table()
     ->forModel(Product::class)
     ->columns() // Returns column collection
-    
+
 // Filters
 CustomFields::table()
     ->forModel(Product::class)
@@ -284,10 +285,15 @@ CustomFields::table()
 // Infolists - flexible output
 CustomFields::infolist()
     ->forModel($record)
+    ->withoutSections() // Render fields without section wrappers
     ->build() // Returns single Grid component
     // OR
-    ->values() // Returns collection of components
+    ->values() // Returns collection of components (requires forModel())
 ```
+
+<Note>
+When using `values()` method, you must call `forModel()` first. The `forSchema()` method is only available with `build()`.
+</Note>
 
 ## Breaking Changes
 
